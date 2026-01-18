@@ -70,10 +70,9 @@ export class ProductController {
   @HttpCode(HttpStatus.OK)
   updateStock(
     @Param('id') id: string,
-    @Param('sku') sku: string,
     @Body('quantity') quantity: number,
     @CurrentUser() user: JwtPayload,
   ) {
-    return this.productService.updateStock(id, sku, quantity, user);
+    return this.productService.updateStock(id, quantity, user);
   }
 }

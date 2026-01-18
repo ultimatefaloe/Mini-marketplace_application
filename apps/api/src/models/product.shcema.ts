@@ -20,38 +20,6 @@ export class VariantOptions {
 
 export const VariantOptionsSchema = SchemaFactory.createForClass(VariantOptions);
 
-@Schema({ _id: false })
-export class VariantCombination {
-  @Prop({ required: true, index: true })
-  sku: string;
-
-  @Prop({
-    type: {
-      size: { type: String, default: null },
-      color: { type: String, default: null },
-      material: { type: String, default: null },
-      gender: { type: String, default: null },
-    },
-    _id: false,
-  })
-  options: {
-    size?: string;
-    color?: string;
-    material?: string;
-    gender?: string;
-  };
-
-  @Prop({ required: true, min: 0 })
-  price: number; // kobo
-
-  @Prop({ default: 0, min: 0 })
-  stock: number;
-
-  @Prop({ type: [String], default: [] })
-  images: string[];
-}
-
-export const VariantCombinationSchema = SchemaFactory.createForClass(VariantCombination);
 
 @Schema({ timestamps: true })
 export class Product {
@@ -75,14 +43,20 @@ export class Product {
   @Prop({ type: VariantOptionsSchema, default: {} })
   variantOptions: VariantOptions;
 
-  @Prop({ type: [VariantCombinationSchema], default: [] })
-  variants: VariantCombination[];
-
   @Prop({ type: [String], default: [], index: true })
   tags: string[];
 
-  @Prop({ min: 0 })
-  basePrice: number;
+  @Prop({ min: 0, max: 100 })
+  discount: number;
+
+  @Prop({ required: true, min: 0 })
+  price: number; // kobo
+
+  @Prop({ default: 0, min: 0 })
+  stock: number;
+
+  @Prop({ type: [String], default: [] })
+  images: string[];
 
   @Prop({ default: true, index: true })
   isActive: boolean;

@@ -5,8 +5,8 @@ export type AdminDocument = Admin & Document;
 
 @Schema({ timestamps: true })
 export class Admin {
-  @Prop({ required: true, unique: true, index: true })
-  auth_Id: string;
+  @Prop({ required: true, trim: true })
+  fullName: string;
 
   @Prop({ required: true, unique: true, lowercase: true, trim: true, index: true })
   email: string;
@@ -48,4 +48,3 @@ export const AdminSchema = SchemaFactory.createForClass(Admin);
 
 // Compound index for common queries
 AdminSchema.index({ email: 1, isActive: 1 });
-AdminSchema.index({ auth_Id: 1, isActive: 1 });

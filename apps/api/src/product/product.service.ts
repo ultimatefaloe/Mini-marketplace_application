@@ -17,20 +17,10 @@ export class ProductService {
   ) {}
 
   async create(createProductDto: CreateProductDto, user: JwtPayload) {
-    // Validate SKUs are unique
-    if (createProductDto.variants?.length) {
-      const skus = createProductDto.variants.map((v) => v.sku);
-      const uniqueSkus = new Set(skus);
-      if (skus.length !== uniqueSkus.size) {
-        throw new BadRequestException('Duplicate SKUs found in variants');
-      }
-    }
-
     const product = await this.productModel.create({
       ...createProductDto,
       createdBy: new Types.ObjectId(user.auth_id),
     });
-
     return this.toDetailEntity(product);
   }
 
@@ -94,7 +84,7 @@ export class ProductService {
       this.productModel
         .find(filter)
         .select(
-          '_id name description categoryId brand basePrice isActive tags viewCount soldCount createdAt updatedAt',
+          '_id name description categoryId brand price discount stock images isActive tags viewCount soldCount createdAt updatedAt',
         )
         .sort(sort)
         .skip(skip)
@@ -158,15 +148,6 @@ export class ProductService {
       throw new ForbiddenException('You can only update your own products');
     }
 
-    // Validate SKUs if variants are being updated
-    if (updateProductDto.variants?.length) {
-      const skus = updateProductDto.variants.map((v) => v.sku);
-      const uniqueSkus = new Set(skus);
-      if (skus.length !== uniqueSkus.size) {
-        throw new BadRequestException('Duplicate SKUs found in variants');
-      }
-    }
-
     Object.assign(product, updateProductDto);
     await product.save();
 
@@ -222,7 +203,7 @@ export class ProductService {
     return { message: 'Product deactivated successfully' };
   }
 
-  async updateStock(id: string, sku: string, quantity: number, user: JwtPayload) {
+  async updateStock(id: string, quantity: number, user: JwtPayload) {
     if (!Types.ObjectId.isValid(id)) {
       throw new BadRequestException('Invalid product ID');
     }
@@ -233,15 +214,10 @@ export class ProductService {
       throw new NotFoundException('Product not found');
     }
 
-    const variant = product.variants.find((v) => v.sku === sku);
-    if (!variant) {
-      throw new NotFoundException(`Variant with SKU ${sku} not found`);
-    }
-
-    variant.stock = quantity;
+    product.stock = quantity;
     await product.save();
 
-    return { message: 'Stock updated successfully', variant };
+    return { message: 'Stock updated successfully', product };
   }
 
   // Helper methods
@@ -252,7 +228,10 @@ export class ProductService {
       description,
       categoryId,
       brand,
-      basePrice,
+      price,
+      discount,
+      stock,
+      images,
       isActive,
       tags,
       viewCount,
@@ -267,7 +246,10 @@ export class ProductService {
       description,
       categoryId,
       brand,
-      basePrice,
+      price,
+      discount,
+      stock,
+      images,
       isActive,
       tags,
       viewCount,

@@ -36,20 +36,17 @@ export class AuthService {
       throw new ConflictException('Email already registered');
     }
 
-    const auth_Id = this.generateAuthId();
     const passwordHash = await bcrypt.hash(dto.password, 12);
 
     const user = await this.userModel.create({
-      auth_Id,
       email: dto.email,
       passwordHash,
-      profile: {
-        fullName: dto.fullName || '',
-        phone: dto.phone || '',
-      },
+      fullName: dto.fullName || '',
+      phone: dto.phone || '',
+      isActive: true
     });
 
-    return this.generateTokens(user._id.toString(), user.auth_Id, user.email, AppRolesEnum.USER, user.isActive);
+    return this.generateTokens(user._id.toString(), user.email, AppRolesEnum.USER, user.isActive);
   }
 
   async signInUser(dto: SignInDto) {
@@ -66,7 +63,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    return this.generateTokens(user._id.toString(), user.auth_Id, user.email, AppRolesEnum.USER, user.isActive);
+    return this.generateTokens(user._id.toString(), user.email, AppRolesEnum.USER, user.isActive);
   }
 
   // ========== ADMIN AUTH ==========
@@ -76,18 +73,18 @@ export class AuthService {
       throw new ConflictException('Email already registered');
     }
 
-    const auth_Id = this.generateAuthId();
     const passwordHash = await bcrypt.hash(dto.password, 12);
 
     const admin = await this.adminModel.create({
-      auth_Id,
+      fullName: dto.fullName,
       email: dto.email,
       phone: dto.phone,
       passwordHash,
+      role: dto.permissions ? 'ADMIN' : 'SUPER_ADMIN',
       permissions: dto.permissions || {},
     });
 
-    return this.generateTokens(admin._id.toString(), admin.auth_Id, admin.email, AppRolesEnum.ADMIN, admin.isActive);
+    return this.generateTokens(admin._id.toString(), admin.email, AppRolesEnum.ADMIN, admin.isActive);
   }
 
   async signInAdmin(dto: SignInDto) {
@@ -104,7 +101,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    return this.generateTokens(admin._id.toString(), admin.auth_Id, admin.email, AppRolesEnum.ADMIN, admin.isActive);
+    return this.generateTokens(admin._id.toString(), admin.email, AppRolesEnum.ADMIN, admin.isActive);
   }
 
   // ========== GOOGLE AUTH ==========
@@ -113,21 +110,15 @@ export class AuthService {
     let account = await Model.findOne({ email: googleUser.email });
 
     if (!account) {
-      const auth_Id = this.generateAuthId();
       const passwordHash = await bcrypt.hash(randomBytes(32).toString('hex'), 12);
 
       const data: any = {
-        auth_Id,
+        fullName: googleUser.fullName,
+        phone: googleUser.phone ?? "",
         email: googleUser.email,
         passwordHash,
         googleId: googleUser.googleId,
       };
-
-      if (type === AppRolesEnum.USER) {
-        data.profile = { fullName: googleUser.fullName || '', phone: '' };
-      } else {
-        data.phone = '';
-      }
 
       account = await Model.create(data);
     } else if (!account.googleId) {
@@ -136,7 +127,7 @@ export class AuthService {
     }
 
     const role = type === AppRolesEnum.ADMIN ? (account as any).role : AppRolesEnum.USER;
-    return this.generateTokens(account._id.toString(), account.auth_Id, account.email, role, account.isActive);
+    return this.generateTokens(account._id.toString(), account.email, role, account.isActive);
   }
 
   // ========== PASSWORD RESET ==========
@@ -193,15 +184,13 @@ export class AuthService {
 
   // ========== HELPERS ==========
   private async generateTokens(
-    id: string,
-    auth_Id: string,
+    auth_id: string,
     email: string,
     role: AppRoles,
     isActive: boolean
   ) {
     const payload: JwtPayload = {
-      id,
-      auth_id: auth_Id,
+      auth_id,
       email,
       role,
       isActive,
@@ -220,11 +209,6 @@ export class AuthService {
     ]);
 
     return { accessToken, refreshToken };
-  }
-
-
-  private generateAuthId(): string {
-    return `${Date.now()}-${randomBytes(8).toString('hex')}`;
   }
 
   getCookieOptions(maxAge: number) {
