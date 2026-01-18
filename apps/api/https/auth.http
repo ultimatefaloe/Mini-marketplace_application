@@ -1,0 +1,471 @@
+### ============================================
+### AUTH MODULE - HTTP REST CLIENT TESTS
+### ============================================
+### Instructions:
+### 1. Install REST Client extension in VSCode
+### 2. Update @baseUrl and @frontendUrl variables
+### 3. Click "Send Request" above each request
+### 4. Cookies are automatically managed between requests
+### ============================================
+
+@baseUrl = http://localhost:5100/api/v0
+@frontendUrl = http://localhost:3000
+
+### ============================================
+### USER AUTHENTICATION
+### ============================================
+
+### User Sign Up
+POST {{baseUrl}}/auth/user/signup
+Content-Type: application/json
+
+{
+  "email": "ultimatefaloe@gmail.com",
+  "password": "SecurePass123!",
+  "fullName": "Faloe Ultimate",
+  "phone": "+1234567890"
+}
+
+### Response: Sets cookies (access_token, refresh_token)
+### Expected: 201 Created
+### {
+###   "message": "User registered successfully"
+### }
+
+###
+
+### User Sign In
+POST {{baseUrl}}/auth/user/signin
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "SecurePass123!"
+}
+
+### Response: Sets cookies (access_token, refresh_token)
+### Expected: 200 OK
+### {
+###   "message": "Signed in successfully"
+### }
+
+###
+
+### User Sign In - Invalid Credentials
+POST {{baseUrl}}/auth/user/signin
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "WrongPassword123!"
+}
+
+### Expected: 401 Unauthorized
+### {
+###   "statusCode": 401,
+###   "message": "Invalid credentials"
+### }
+
+###
+
+### User Sign Up - Duplicate Email
+POST {{baseUrl}}/auth/user/signup
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "AnotherPass123!",
+  "fullName": "Jane Doe"
+}
+
+### Expected: 409 Conflict
+### {
+###   "statusCode": 409,
+###   "message": "Email already registered"
+### }
+
+###
+
+### ============================================
+### ADMIN AUTHENTICATION
+### ============================================
+
+### Admin Sign Up
+POST {{baseUrl}}/auth/admin/signup
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "AdminPass123!",
+  "phone": "+1234567890",
+  "permissions": {
+    "manageProducts": true,
+    "manageOrders": true,
+    "managePayments": false
+  }
+}
+
+### Response: Sets cookies (access_token, refresh_token)
+### Expected: 201 Created
+### {
+###   "message": "Admin registered successfully"
+### }
+
+###
+
+### Admin Sign Up - Super Admin (Full Permissions)
+POST {{baseUrl}}/auth/admin/signup
+Content-Type: application/json
+
+{
+  "email": "superadmin@example.com",
+  "password": "SuperAdmin123!",
+  "phone": "+1987654321"
+}
+
+### Default permissions will be applied
+### Expected: 201 Created
+
+###
+
+### Admin Sign In
+POST {{baseUrl}}/auth/admin/signin
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "AdminPass123!"
+}
+
+### Response: Sets cookies (access_token, refresh_token)
+### Expected: 200 OK
+### {
+###   "message": "Signed in successfully"
+### }
+
+###
+
+### Admin Sign In - Invalid Credentials
+POST {{baseUrl}}/auth/admin/signin
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "WrongPassword!"
+}
+
+### Expected: 401 Unauthorized
+
+###
+
+### ============================================
+### PASSWORD RESET - USER
+### ============================================
+
+### Request Password Reset - User
+POST {{baseUrl}}/auth/user/request-reset
+Content-Type: application/json
+
+{
+  "email": "ultimatefaloe@gmail.com"
+}
+
+### Response: Always returns same message (security)
+### Expected: 200 OK
+### {
+###   "message": "If email exists, reset link sent"
+### }
+### Check email for reset link
+
+###
+
+### Request Password Reset - Non-existent User
+POST {{baseUrl}}/auth/user/request-reset
+Content-Type: application/json
+
+{
+  "email": "nonexistent@example.com"
+}
+
+### Response: Same message (doesn't reveal if email exists)
+### Expected: 200 OK
+
+###
+
+### Reset Password - User
+### Note: Replace <TOKEN> with actual token from email
+POST {{baseUrl}}/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6",
+  "newPassword": "NewSecurePass123!"
+}
+
+### Expected: 200 OK
+### {
+###   "message": "Password reset successful"
+### }
+
+###
+
+### Reset Password - Invalid Token
+POST {{baseUrl}}/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "invalid-token-12345",
+  "newPassword": "NewPassword123!"
+}
+
+### Expected: 400 Bad Request
+### {
+###   "statusCode": 400,
+###   "message": "Invalid or expired token"
+### }
+
+###
+
+### ============================================
+### PASSWORD RESET - ADMIN
+### ============================================
+
+### Request Password Reset - Admin
+POST {{baseUrl}}/auth/admin/request-reset
+Content-Type: application/json
+
+{
+  "email": "admin@example.com"
+}
+
+### Expected: 200 OK
+### {
+###   "message": "If email exists, reset link sent"
+### }
+
+###
+
+### ============================================
+### GOOGLE OAUTH
+### ============================================
+
+### Google Sign In - User
+### Manual: Open in browser
+GET {{baseUrl}}/auth/user/google
+
+### This will redirect to Google OAuth consent screen
+### After approval, redirects to: {{baseUrl}}/auth/user/google/callback
+### Then redirects to: {{frontendUrl}}
+### Cookies will be set automatically
+
+###
+
+### Google Sign In - Admin
+### Manual: Open in browser
+GET {{baseUrl}}/auth/admin/google
+
+### This will redirect to Google OAuth consent screen
+### After approval, redirects to: {{baseUrl}}/auth/admin/google/callback
+### Then redirects to: {{frontendUrl}}/admin
+### Cookies will be set automatically
+
+###
+
+### ============================================
+### LOGOUT
+### ============================================
+
+### Logout (Clears cookies)
+POST {{baseUrl}}/auth/logout
+
+### Response: Clears access_token and refresh_token cookies
+### Expected: 200 OK
+### {
+###   "message": "Logged out successfully"
+### }
+
+###
+
+### ============================================
+### PROTECTED ROUTE TESTING
+### (After authentication with valid cookies)
+### ============================================
+
+### Test Protected Route - No Auth
+### Should fail if not authenticated
+GET {{baseUrl}}/products
+
+### Expected: 401 Unauthorized (if JwtAuthGuard is active)
+
+###
+
+### Test Protected Route - With Auth
+### First sign in, then test
+POST {{baseUrl}}/auth/user/signin
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "SecurePass123!"
+}
+
+###
+
+GET {{baseUrl}}/products
+
+### Expected: Success (if cookies are set correctly)
+
+###
+
+### ============================================
+### VALIDATION TESTS
+### ============================================
+
+### Invalid Email Format
+POST {{baseUrl}}/auth/user/signup
+Content-Type: application/json
+
+{
+  "email": "invalid-email",
+  "password": "SecurePass123!",
+  "fullName": "Test User"
+}
+
+### Expected: 400 Bad Request
+### {
+###   "statusCode": 400,
+###   "message": ["email must be an email"],
+###   "error": "Bad Request"
+### }
+
+###
+
+### Password Too Short
+POST {{baseUrl}}/auth/user/signup
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "short",
+  "fullName": "Test User"
+}
+
+### Expected: 400 Bad Request
+### {
+###   "statusCode": 400,
+###   "message": ["password must be longer than or equal to 8 characters"],
+###   "error": "Bad Request"
+### }
+
+###
+
+### Missing Required Fields
+POST {{baseUrl}}/auth/user/signup
+Content-Type: application/json
+
+{
+  "email": "test@example.com"
+}
+
+### Expected: 400 Bad Request
+### Missing password field
+
+###
+
+### ============================================
+### EDGE CASES
+### ============================================
+
+### Email Case Sensitivity (should work - emails are lowercase)
+POST {{baseUrl}}/auth/user/signin
+Content-Type: application/json
+
+{
+  "email": "USER@EXAMPLE.COM",
+  "password": "SecurePass123!"
+}
+
+### Expected: 200 OK (email is normalized to lowercase)
+
+###
+
+### Email with Whitespace (should be trimmed)
+POST {{baseUrl}}/auth/user/signin
+Content-Type: application/json
+
+{
+  "email": "  user@example.com  ",
+  "password": "SecurePass123!"
+}
+
+### Expected: 200 OK (email is trimmed)
+
+###
+
+### ============================================
+### LOAD TESTING PREPARATION
+### ============================================
+
+### Multiple User Signups (Run multiple times)
+POST {{baseUrl}}/auth/user/signup
+Content-Type: application/json
+
+{
+  "email": "user{{$randomInt}}@example.com",
+  "password": "SecurePass123!",
+  "fullName": "User {{$randomInt}}"
+}
+
+### Use {{$randomInt}} for unique emails in load testing
+
+###
+
+### ============================================
+### COOKIE INSPECTION
+### ============================================
+### To view cookies in VSCode REST Client:
+### 1. Check the Response tab after authentication
+### 2. Look for "Set-Cookie" headers
+### 3. Cookies are automatically sent in subsequent requests
+### 
+### Cookie attributes to verify:
+### - HttpOnly: true (prevents XSS)
+### - Secure: true (production only - HTTPS)
+### - SameSite: Strict (CSRF protection)
+### - Max-Age: 900000 (access_token - 15 min)
+### - Max-Age: 604800000 (refresh_token - 7 days)
+### ============================================
+
+### ============================================
+### NOTES FOR TESTING
+### ============================================
+### 1. Sequential Testing:
+###    - Sign up user first
+###    - Then sign in with same credentials
+###    - Test password reset flow
+###    - Finally test logout
+###
+### 2. Google OAuth Testing:
+###    - Cannot be tested via HTTP file
+###    - Must open URLs in browser manually
+###    - Verify redirect to {{frontendUrl}}
+###
+### 3. Cookie Persistence:
+###    - REST Client maintains cookies per file
+###    - If cookies expire, sign in again
+###
+### 4. Environment Variables:
+###    - Update @baseUrl for different environments
+###    - Update @frontendUrl accordingly
+###
+### 5. Database State:
+###    - Some tests assume clean state
+###    - Drop database or use unique emails for each run
+###
+### 6. Expected Behavior:
+###    - Duplicate email = 409 Conflict
+###    - Invalid credentials = 401 Unauthorized
+###    - Invalid token = 400 Bad Request
+###    - Validation errors = 400 Bad Request
+###    - Success = 200/201 with appropriate message
+### ============================================

@@ -1,0 +1,82 @@
+
+// ==================== AUTH USAGE EXAMPLES ====================
+/*
+// Protected route example
+@Controller('products')
+export class ProductsController {
+  @Get()
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  findAll(@CurrentUser() user: JwtPayload) {
+    return `Admin ${user.email} accessing products`;
+  }
+
+  @Post()
+  @Roles('SUPER_ADMIN')
+  create(@Body() createDto: any) {
+    return 'Only super admin can create';
+  }
+
+  @Get('public')
+  @Public()
+  publicRoute() {
+    return 'Public access';
+  }
+}
+*/
+
+
+// ==================== PRODUCT USAGE EXAMPLES ====================
+/*
+// Public routes (no auth required)
+GET /products?page=1&limit=10&search=shoes&brand=Nike
+GET /products/:id
+
+// Admin only routes
+POST /products (create)
+PATCH /products/:id (update)
+DELETE /products/:id (hard delete)
+PATCH /products/:id/deactivate (soft delete)
+PATCH /products/:id/stock/:sku (update stock)
+
+// Query examples:
+GET /products?categoryId=507f1f77bcf86cd799439011
+GET /products?brand=Nike&tags=sports,running
+GET /products?minPrice=1000&maxPrice=50000
+GET /products?search=red%20shoes&sortBy=price&sortOrder=asc
+GET /products?isActive=false (admin only - see inactive products)
+*/
+
+
+
+// ==================== CATEGORY USAGE EXAMPLES ====================
+/*
+// Public routes
+GET /categories                    // Get all categories
+GET /categories?parentId=null      // Get root categories
+GET /categories?parentId=xxx       // Get subcategories
+GET /categories/tree               // Get hierarchical tree
+GET /categories/slug/shoes         // Get by slug
+GET /categories/:id                // Get by ID with children
+
+// Admin only routes
+POST /categories                   // Create
+PATCH /categories/:id              // Update
+DELETE /categories/:id             // Hard delete
+PATCH /categories/:id/deactivate   // Soft delete
+POST /categories/reorder           // Reorder categories
+
+// Query examples:
+GET /categories?search=electronics
+GET /categories?parentId=507f1f77bcf86cd799439011
+GET /categories?isActive=false
+GET /categories?includeChildren=true
+
+// Reorder request body:
+POST /categories/reorder
+{
+  "updates": [
+    { "id": "507f1f77bcf86cd799439011", "order": 1 },
+    { "id": "507f1f77bcf86cd799439012", "order": 2 }
+  ]
+}
+*/
