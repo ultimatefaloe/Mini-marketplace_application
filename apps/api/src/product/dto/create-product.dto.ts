@@ -7,7 +7,6 @@ import {
   IsArray,
   ValidateNested,
   IsMongoId,
-  ArrayMinSize,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -33,33 +32,6 @@ export class VariantOptionsDto {
   genders?: string[];
 }
 
-export class VariantCombinationDto {
-  @IsString()
-  @IsNotEmpty()
-  sku: string;
-
-  @IsOptional()
-  options?: {
-    size?: string;
-    color?: string;
-    material?: string;
-    gender?: string;
-  };
-
-  @IsNumber()
-  @Min(0)
-  price: number;
-
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  stock?: number;
-
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  images?: string[];
-}
 
 export class CreateProductDto {
   @IsString()
@@ -85,17 +57,25 @@ export class CreateProductDto {
 
   @IsOptional()
   @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => VariantCombinationDto)
-  variants?: VariantCombinationDto[];
-
-  @IsOptional()
-  @IsArray()
   @IsString({ each: true })
   tags?: string[];
 
   @IsOptional()
   @IsNumber()
   @Min(0)
-  basePrice?: number;
+  discount?: number;
+
+  @IsNumber()
+  @Min(0)
+  price: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  stock?: number;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  images?: string[];
 }

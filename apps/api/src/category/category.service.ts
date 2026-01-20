@@ -60,7 +60,7 @@ export class CategoryService {
       ...createCategoryDto,
       icon: iconImage ?? createCategoryDto.icon,
       slug,
-      createdBy: new Types.ObjectId(user.id),
+      createdBy: new Types.ObjectId(user.auth_id),
     });
 
     return this.toEntity(category);

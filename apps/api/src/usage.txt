@@ -80,3 +80,56 @@ POST /categories/reorder
   ]
 }
 */
+
+
+// ==================== PRODUCT USAGE EXAMPLES ====================
+/*
+// User routes (authenticated users)
+POST /orders                        // Create order
+GET /orders                         // Get my orders
+GET /orders/:id                     // Get order detail
+GET /orders/number/:orderNumber     // Get by order number
+POST /orders/:id/cancel             // Cancel my order
+
+// Admin routes
+GET /orders?userId=xxx              // Get user's orders
+GET /orders?status=PAID             // Filter by status
+PATCH /orders/:id/status            // Update status
+GET /orders/stats                   // Get statistics
+
+// Create order request:
+POST /orders
+{
+  "items": [
+    {
+      "productId": "507f1f77bcf86cd799439011",
+      "sku": "NIKE-AM90-BLK-9",
+      "quantity": 2
+    }
+  ],
+  "shippingAddress": {
+    "fullName": "John Doe",
+    "phone": "+234-123-456-7890",
+    "addressLine1": "123 Main St",
+    "city": "Lagos",
+    "state": "Lagos",
+    "country": "Nigeria",
+    "postalCode": "100001"
+  },
+  "notes": "Please handle with care"
+}
+
+// Update status request:
+PATCH /orders/:id/status
+{
+  "status": "SHIPPED",
+  "trackingNumber": "TRK123456789",
+  "notes": "Shipped via FedEx"
+}
+
+// Cancel order request:
+POST /orders/:id/cancel
+{
+  "reason": "Changed my mind"
+}
+*/

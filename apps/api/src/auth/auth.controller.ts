@@ -118,8 +118,7 @@ export class AuthController {
     return {
       valid: true,
       user: {
-        id: user.id,
-        auth_Id: user.auth_id,
+        auth_id: user.auth_id,
         email: user.email,
         role: user.role,
         isActive: user.isActive
