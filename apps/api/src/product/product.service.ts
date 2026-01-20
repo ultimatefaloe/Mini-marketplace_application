@@ -14,11 +14,12 @@ import { Product, ProductDocument } from 'src/models/product.shcema';
 export class ProductService {
   constructor(
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
-  ) {}
+  ) { }
 
-  async create(createProductDto: CreateProductDto, user: JwtPayload) {
+  async create(createProductDto: CreateProductDto, images: string[], user: JwtPayload) {
     const product = await this.productModel.create({
       ...createProductDto,
+      images,
       createdBy: new Types.ObjectId(user.auth_id),
     });
     return this.toDetailEntity(product);
@@ -129,7 +130,12 @@ export class ProductService {
     return this.toDetailEntity(product);
   }
 
-  async update(id: string, updateProductDto: UpdateProductDto, user: JwtPayload) {
+  async update(
+    id: string,
+    updateProductDto: UpdateProductDto,
+    uploadedImages: string[],
+    user: JwtPayload,
+  ) {
     if (!Types.ObjectId.isValid(id)) {
       throw new BadRequestException('Invalid product ID');
     }
@@ -140,7 +146,7 @@ export class ProductService {
       throw new NotFoundException('Product not found');
     }
 
-    // Check ownership (only creator or SUPER_ADMIN can update)
+    // Ownership check
     if (
       user.role !== 'SUPER_ADMIN' &&
       product.createdBy.toString() !== user.auth_id
@@ -148,11 +154,27 @@ export class ProductService {
       throw new ForbiddenException('You can only update your own products');
     }
 
-    Object.assign(product, updateProductDto);
+    /**
+     * IMAGE UPDATE LOGIC
+     */
+    const dtoImages = updateProductDto.images ?? [];
+
+    if (uploadedImages.length || dtoImages.length) {
+      product.images = [...dtoImages, ...uploadedImages];
+    }
+    // else → do nothing (keep existing images)
+
+    /**
+     * Update other fields EXCEPT images
+     */
+    const { images, ...rest } = updateProductDto;
+    Object.assign(product, rest);
+
     await product.save();
 
     return this.toDetailEntity(product);
   }
+
 
   async remove(id: string, user: JwtPayload) {
     if (!Types.ObjectId.isValid(id)) {

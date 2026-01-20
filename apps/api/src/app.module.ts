@@ -12,6 +12,9 @@ import { ProductModule } from './product/product.module';
 import { CategoryModule } from './category/category.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { UploadModule } from './upload/upload.module';
+import { OrderModule } from './orders/orders.module';
+import { CartsModule } from './carts/carts.module';
+import { PaymentModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -29,7 +32,10 @@ import { UploadModule } from './upload/upload.module';
     ProductModule,
     CategoryModule,
     CloudinaryModule,
-    UploadModule
+    UploadModule,
+    OrderModule,
+    CartsModule,
+    PaymentModule
   ],
   providers: [
     {
