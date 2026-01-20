@@ -11,10 +11,11 @@ export class InitializePaymentDto {
   @IsNotEmpty()
   orderId: string;
 
-  @IsUrl()
   @IsOptional()
+  @IsUrl({ require_tld: false })
   callbackUrl?: string;
 }
+
 
 export class VerifyPaymentDto {
   @IsString()
