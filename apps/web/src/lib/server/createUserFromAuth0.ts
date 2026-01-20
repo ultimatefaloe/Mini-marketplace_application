@@ -12,10 +12,10 @@ export async function createUserFromAuth0(auth0User: any) {
     if (!auth0Id) return null;
 
     const user = await User.findOneAndUpdate(
-      { auth_Id: auth0Id },            // filter
+      { auth_id: auth0Id },            // filter
       {
         $setOnInsert: {
-          auth_Id: auth0Id,
+          auth_id: auth0Id,
           email: auth0User.email ?? null,
           fullName: auth0User.name ?? "",
           picture: auth0User.picture ?? null,
@@ -45,10 +45,10 @@ export async function createAdminFromAuth0(
     if (!auth0Id) return null;
 
     const admin = await Admin.findOneAndUpdate(
-      { auth_Id: auth0Id },
+      { auth_id: auth0Id },
       {
         $setOnInsert: {
-          auth_Id: auth0Id,
+          auth_id: auth0Id,
           email: authAdmin.email ?? null,
           fullName: authAdmin.name ?? "",
           role: role.toUpperCase(),

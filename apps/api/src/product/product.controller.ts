@@ -9,24 +9,33 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  UploadedFiles,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto, UpdateProductDto, QueryProductDto } from './dto';
 import { Roles, CurrentUser, Public } from '../auth/decorators';
 import type { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
+import { Upload } from 'src/cloudinary/decorators/upload.decorator';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Controller('products')
 export class ProductController {
-  constructor(private readonly productService: ProductService) { }
+  constructor(private readonly productService: ProductService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) { }
 
   @Post()
   @Roles('ADMIN', 'SUPER_ADMIN')
   @HttpCode(HttpStatus.CREATED)
-  create(
+  @Upload('images', 8)
+  async create(
     @Body() createProductDto: CreateProductDto,
     @CurrentUser() user: JwtPayload,
+    @UploadedFiles() file: Express.Multer.File[]
   ) {
-    return this.productService.create(createProductDto, user);
+    const result = await this.cloudinaryService.uploadMultipleFiles(file, 'mini-marketplace/products');
+    const images: string[] = result.length > 0 ? result.map(r => r.secure_url) : createProductDto.images!
+    return this.productService.create(createProductDto, images, user);
   }
 
   @Get()
@@ -41,15 +50,30 @@ export class ProductController {
     return this.productService.findOne(id);
   }
 
-  @Patch(':id')
-  @Roles('ADMIN', 'SUPER_ADMIN')
-  update(
-    @Param('id') id: string,
-    @Body() updateProductDto: UpdateProductDto,
-    @CurrentUser() user: JwtPayload,
-  ) {
-    return this.productService.update(id, updateProductDto, user);
-  }
+@Patch(':id')
+@Roles('ADMIN', 'SUPER_ADMIN')
+@Upload('images', 8)
+async update(
+  @Param('id') id: string,
+  @Body() updateProductDto: UpdateProductDto,
+  @CurrentUser() user: JwtPayload,
+  @UploadedFiles() files: Express.Multer.File[],
+) {
+  const uploads = await this.cloudinaryService.uploadMultipleFiles(
+    files,
+    'mini-marketplace/products',
+  );
+
+  const uploadedImages = uploads.map((r) => r.secure_url);
+
+  return this.productService.update(
+    id,
+    updateProductDto,
+    uploadedImages,
+    user,
+  );
+}
+
 
   @Delete(':id')
   @Roles('ADMIN', 'SUPER_ADMIN')
@@ -70,10 +94,9 @@ export class ProductController {
   @HttpCode(HttpStatus.OK)
   updateStock(
     @Param('id') id: string,
-    @Param('sku') sku: string,
     @Body('quantity') quantity: number,
     @CurrentUser() user: JwtPayload,
   ) {
-    return this.productService.updateStock(id, sku, quantity, user);
+    return this.productService.updateStock(id, quantity, user);
   }
 }

@@ -35,7 +35,7 @@ export class CategoryController {
     @CurrentUser() user: JwtPayload,
     @UploadedFile() file: Express.Multer.File
   ) {
-    const result = await this.cloudinaryService.uploadFile(file, 'categories');
+    const result = await this.cloudinaryService.uploadFile(file, 'mini-marketplace/categories');
     const image: string = result ? result?.secure_url : createCategoryDto.icon!
     return this.categoryService.create(createCategoryDto, image, user);
   }

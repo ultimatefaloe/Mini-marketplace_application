@@ -39,7 +39,7 @@ POST {{baseUrl}}/auth/user/signin
 Content-Type: application/json
 
 {
-  "email": "user@example.com",
+  "email": "ultimatefaloe@gmail.com",
   "password": "SecurePass123!"
 }
 
@@ -95,6 +95,7 @@ POST {{baseUrl}}/auth/admin/signup
 Content-Type: application/json
 
 {
+  "fullName": "Jane Doe",
   "email": "admin@example.com",
   "password": "AdminPass123!",
   "phone": "+1234567890",
@@ -118,6 +119,7 @@ POST {{baseUrl}}/auth/admin/signup
 Content-Type: application/json
 
 {
+  "fullName": "Jane Doe",
   "email": "superadmin@example.com",
   "password": "SuperAdmin123!",
   "phone": "+1987654321"

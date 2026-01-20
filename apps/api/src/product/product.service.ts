@@ -14,23 +14,14 @@ import { Product, ProductDocument } from 'src/models/product.shcema';
 export class ProductService {
   constructor(
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
-  ) {}
+  ) { }
 
-  async create(createProductDto: CreateProductDto, user: JwtPayload) {
-    // Validate SKUs are unique
-    if (createProductDto.variants?.length) {
-      const skus = createProductDto.variants.map((v) => v.sku);
-      const uniqueSkus = new Set(skus);
-      if (skus.length !== uniqueSkus.size) {
-        throw new BadRequestException('Duplicate SKUs found in variants');
-      }
-    }
-
+  async create(createProductDto: CreateProductDto, images: string[], user: JwtPayload) {
     const product = await this.productModel.create({
       ...createProductDto,
+      images,
       createdBy: new Types.ObjectId(user.auth_id),
     });
-
     return this.toDetailEntity(product);
   }
 
@@ -94,7 +85,7 @@ export class ProductService {
       this.productModel
         .find(filter)
         .select(
-          '_id name description categoryId brand basePrice isActive tags viewCount soldCount createdAt updatedAt',
+          '_id name description categoryId brand price discount stock images isActive tags viewCount soldCount createdAt updatedAt',
         )
         .sort(sort)
         .skip(skip)
@@ -139,7 +130,12 @@ export class ProductService {
     return this.toDetailEntity(product);
   }
 
-  async update(id: string, updateProductDto: UpdateProductDto, user: JwtPayload) {
+  async update(
+    id: string,
+    updateProductDto: UpdateProductDto,
+    uploadedImages: string[],
+    user: JwtPayload,
+  ) {
     if (!Types.ObjectId.isValid(id)) {
       throw new BadRequestException('Invalid product ID');
     }
@@ -150,7 +146,7 @@ export class ProductService {
       throw new NotFoundException('Product not found');
     }
 
-    // Check ownership (only creator or SUPER_ADMIN can update)
+    // Ownership check
     if (
       user.role !== 'SUPER_ADMIN' &&
       product.createdBy.toString() !== user.auth_id
@@ -158,20 +154,27 @@ export class ProductService {
       throw new ForbiddenException('You can only update your own products');
     }
 
-    // Validate SKUs if variants are being updated
-    if (updateProductDto.variants?.length) {
-      const skus = updateProductDto.variants.map((v) => v.sku);
-      const uniqueSkus = new Set(skus);
-      if (skus.length !== uniqueSkus.size) {
-        throw new BadRequestException('Duplicate SKUs found in variants');
-      }
-    }
+    /**
+     * IMAGE UPDATE LOGIC
+     */
+    const dtoImages = updateProductDto.images ?? [];
 
-    Object.assign(product, updateProductDto);
+    if (uploadedImages.length || dtoImages.length) {
+      product.images = [...dtoImages, ...uploadedImages];
+    }
+    // else → do nothing (keep existing images)
+
+    /**
+     * Update other fields EXCEPT images
+     */
+    const { images, ...rest } = updateProductDto;
+    Object.assign(product, rest);
+
     await product.save();
 
     return this.toDetailEntity(product);
   }
+
 
   async remove(id: string, user: JwtPayload) {
     if (!Types.ObjectId.isValid(id)) {
@@ -222,7 +225,7 @@ export class ProductService {
     return { message: 'Product deactivated successfully' };
   }
 
-  async updateStock(id: string, sku: string, quantity: number, user: JwtPayload) {
+  async updateStock(id: string, quantity: number, user: JwtPayload) {
     if (!Types.ObjectId.isValid(id)) {
       throw new BadRequestException('Invalid product ID');
     }
@@ -233,15 +236,10 @@ export class ProductService {
       throw new NotFoundException('Product not found');
     }
 
-    const variant = product.variants.find((v) => v.sku === sku);
-    if (!variant) {
-      throw new NotFoundException(`Variant with SKU ${sku} not found`);
-    }
-
-    variant.stock = quantity;
+    product.stock = quantity;
     await product.save();
 
-    return { message: 'Stock updated successfully', variant };
+    return { message: 'Stock updated successfully', product };
   }
 
   // Helper methods
@@ -252,7 +250,10 @@ export class ProductService {
       description,
       categoryId,
       brand,
-      basePrice,
+      price,
+      discount,
+      stock,
+      images,
       isActive,
       tags,
       viewCount,
@@ -267,7 +268,10 @@ export class ProductService {
       description,
       categoryId,
       brand,
-      basePrice,
+      price,
+      discount,
+      stock,
+      images,
       isActive,
       tags,
       viewCount,

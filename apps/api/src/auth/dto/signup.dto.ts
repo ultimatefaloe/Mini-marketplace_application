@@ -11,7 +11,7 @@ export class SignUpDto {
 
   @IsOptional()
   @IsString()
-  fullName?: string;
+  fullName: string;
 
   @IsOptional()
   @IsString()
