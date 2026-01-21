@@ -18,7 +18,7 @@ export default function Header() {
         </button>
         <h1 className="ml-4 text-xl font-semibold">
           <Link to="/" className="flex gap-5">
-            {/* <img src="/logo.png" alt="UTE_IC Logo" className="h-10" /> */}
+            <img src="/logo.png" alt="UTE_IC Logo" className="h-10" />
             <span className='font-extrabold text-2xl font-mono'>Ultimate IntelliForge Code</span>
           </Link>
         </h1>
