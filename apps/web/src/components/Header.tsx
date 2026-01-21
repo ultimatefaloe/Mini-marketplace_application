@@ -8,7 +8,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="p-4 flex items-center bg-gray-800 text-white shadow-lg">
+      <header className="p-4 flex items-center bg-mmp-primary2 text-mmp-accent shadow-lg">
         <button
           onClick={() => setIsOpen(true)}
           className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
@@ -17,12 +17,9 @@ export default function Header() {
           <Menu size={24} />
         </button>
         <h1 className="ml-4 text-xl font-semibold">
-          <Link to="/">
-            <img
-              src="/tanstack-word-logo-white.svg"
-              alt="TanStack Logo"
-              className="h-10"
-            />
+          <Link to="/" className="flex gap-5">
+            <img src="/logo.png" alt="UTE_IC Logo" className="h-10" />
+            <span className='font-extrabold text-2xl font-mono'>Ultimate IntelliForge Code</span>
           </Link>
         </h1>
       </header>
