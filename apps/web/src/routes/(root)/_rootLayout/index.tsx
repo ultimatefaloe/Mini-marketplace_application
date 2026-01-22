@@ -1,6 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Outlet } from '@tanstack/react-router'
 
-export const Route = createFileRoute('/')({
+export const Route = createFileRoute('/(root)/_rootLayout/')({
   component: App,
 })
 
@@ -11,6 +11,7 @@ function App() {
         <h1 className='text-gray-800 font-bold text-7xl'>Welcome to Mini MarketPlace</h1>
         <p className='text-sky-600 font-sans text-xl'>Ready to purchase your first product</p>
       </section>
+      <Outlet />
     </div>
   )
 }
