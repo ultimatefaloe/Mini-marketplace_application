@@ -27,7 +27,6 @@ export interface ICategoryTreeNode {
   slug: string;
   icon: string;
   order: number;
-  // children: ICategoryTreeNode[];
 }
 
 /**

@@ -12,7 +12,6 @@ import {
 import { ScrollArea, ScrollBar } from './scroll-area'
 import { Link } from '@tanstack/react-router'
 import { Card, CardContent } from './card'
-import { Button } from './button'
 import type { ICategoryTreeNode } from '@/types'
 
 const iconMap: Record<string, any> = {

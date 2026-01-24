@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useRef } from 'react'
 import { Link } from '@tanstack/react-router'
 import {
   ChevronLeft,
@@ -248,7 +248,7 @@ export default function HomeClient() {
                       {category.name}
                     </h3>
                   </div>
-                  <p className="text-mmp-neutral/60">
+                  <p className="text-mmp-accent">
                     Discover our latest {category.name.toLowerCase()} collection
                   </p>
                 </div>
