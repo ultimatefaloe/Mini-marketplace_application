@@ -119,6 +119,8 @@ export class AuthController {
       valid: true,
       user: {
         auth_id: user.auth_id,
+        fullName: user.fullName,
+        phone: user.phone || '',
         email: user.email,
         role: user.role,
         isActive: user.isActive

@@ -26,6 +26,9 @@ export class Product {
   @Prop({ required: true, trim: true, index: 'text' })
   name: string;
 
+  @Prop({ required: true, trim: true, index: 'text' })
+  slug: string;
+
   @Prop({ trim: true })
   description: string;
 
