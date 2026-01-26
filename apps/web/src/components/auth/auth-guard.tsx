@@ -1,7 +1,6 @@
 import React from 'react';
 import { Navigate, useLocation } from '@tanstack/react-router';
 import { useAuth } from '@/hooks';
-import { Loader2 } from 'lucide-react';
 import { UserRole } from '@/types';
 
 interface AuthGuardProps {
@@ -17,7 +16,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   allowedRoles = [],
   redirectTo,
 }) => {
-  const { isAuthenticated, isLoading, role } = useAuth();
+  const { isAuthenticated, role } = useAuth();
   const location = useLocation();
 
   // if (isLoading) {

@@ -82,7 +82,7 @@ function AdminSignupPage() {
           }
         },
         onError: (error: any) => {
-          toast.error('Registration failed, Please try again.');
+          toast.error(error.message || 'Registration failed, Please try again.');
         },
       });
     } catch (error: any) {
@@ -96,7 +96,7 @@ function AdminSignupPage() {
   const footer = (
     <div className="text-center space-y-3">
       <div className="text-sm text-gray-600">
-        Already have an admin account?{' '}
+        Already have an business account?{' '}
         <Link
           to="/admin/login"
           className="font-medium text-mmp-primary hover:text-mmp-primary2 hover:underline"
@@ -121,7 +121,7 @@ function AdminSignupPage() {
       title={
         <div className="flex items-center justify-center gap-2">
           <Shield className="h-6 w-6" />
-          <span>Admin Registration</span>
+          <span>Business Registration</span>
         </div>
       }
       description="Request access to manage your store on FashionKet"
@@ -131,7 +131,7 @@ function AdminSignupPage() {
     >
       <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
         <p className="text-sm text-blue-700">
-          <strong>Note:</strong> Admin accounts require approval. You'll receive an email once your account is activated.
+          <strong>Note:</strong> Business accounts require approval. You'll receive an email once your account is activated.
         </p>
       </div>
 

@@ -44,7 +44,7 @@ function AdminForgotPasswordPage() {
           )
         },
         onError: (error: any) => {
-          toast.error('Failed to send reset link, Please try again.')
+          toast.error(error.message || 'Failed to send reset link, Please try again.')
         },
       })
     } catch (error: any) {
@@ -103,7 +103,7 @@ function AdminForgotPasswordPage() {
             </h3>
             <p className="text-sm text-gray-600">
               For security reasons, password reset links are only sent to
-              verified admin email addresses.
+              verified business email addresses.
             </p>
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
               <p className="text-sm text-blue-700">
@@ -118,7 +118,7 @@ function AdminForgotPasswordPage() {
               asChild
               className="w-full bg-mmp-primary hover:bg-mmp-primary2"
             >
-              <Link to="/admin/login">Return to Admin Login</Link>
+              <Link to="/admin/login">Return to Business Login</Link>
             </Button>
             <Button
               variant="outline"

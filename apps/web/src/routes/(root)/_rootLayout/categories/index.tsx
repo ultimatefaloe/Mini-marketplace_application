@@ -1,22 +1,8 @@
 import CategoriesCarousel from '@/components/ui/categories-carousel'
 import { createFileRoute } from '@tanstack/react-router'
 import {
-  Shirt,
-  Watch,
-  Glasses,
   Sparkles as SparklesIcon,
   Zap,
-  Crown,
-  TrendingUp,
-  Smartphone,
-  Headphones,
-  Home,
-  Car,
-  Gamepad2,
-  Book,
-  Heart,
-  Palette,
-  Utensils,
   Plus,
 } from 'lucide-react'
 

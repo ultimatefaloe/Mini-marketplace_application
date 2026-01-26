@@ -9,7 +9,6 @@ import {
   Home,
   Package,
   Tag,
-  Store,
   ChevronRight,
   LogOut,
   ShoppingBag,
@@ -43,7 +42,6 @@ import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAuth } from '@/hooks'
 import { useCart, useLogout } from '@/api'
-import { Skeleton } from '@/components/ui/skeleton'
 import { formatCurrency } from '@/lib/utils'
 
 // Navigation links configuration
@@ -76,10 +74,10 @@ export default function Header() {
   const router = useRouterState()
   const navigate = useNavigate()
 
-  const { user, isAuthenticated, isLoading, isAdmin, isUser, logout } =
+  const { user, isAuthenticated, isAdmin, isUser, logout } =
     useAuth()
   const { data: cartData, isLoading: isLoadingCart } = useCart()
-  const { mutate: logoutMutate, isPending: isLoggingOut } = useLogout()
+  const { isPending: isLoggingOut } = useLogout()
 
   const cartItems = cartData?.items?.length || 0
   const cartTotal = useMemo(() => {

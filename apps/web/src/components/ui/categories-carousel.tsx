@@ -1,6 +1,5 @@
 import { Badge } from './badge'
 import {
-  ArrowRight,
   Shirt,
   Watch,
   Glasses,

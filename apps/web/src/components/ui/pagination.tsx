@@ -88,7 +88,7 @@ export const Pagination: React.FC<PaginationProps> = ({
             <select 
               className="border rounded px-2 py-1 text-sm bg-transparent"
               value={limit}
-              onChange={(e) => onPageChange(1)} // Reset to page 1 when changing limit
+              onChange={() => onPageChange(1)} // Reset to page 1 when changing limit
             >
               {[12, 24, 36, 48].map((size) => (
                 <option key={size} value={size}>

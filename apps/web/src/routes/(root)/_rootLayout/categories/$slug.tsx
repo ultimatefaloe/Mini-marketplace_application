@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import  { useState, useCallback } from 'react';
 import { ProductCard } from '@/components/ui/product-card';
 import { Pagination, CompactPagination } from '@/components/ui/pagination';
 import { Button } from '@/components/ui/button';
@@ -114,7 +114,6 @@ const sortOptions = [
 ];
 
 function CategoryProductsPage() {
-  const { slug } = Route.useParams();
   const { category } = Route.useLoaderData();
   
   // State

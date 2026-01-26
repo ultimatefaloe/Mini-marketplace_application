@@ -40,7 +40,7 @@ function LoginPage() {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      const response = await login(data, {
+       await login(data, {
         onSuccess: (data) => {
           if (data.user) {
             setAuth(data.user)

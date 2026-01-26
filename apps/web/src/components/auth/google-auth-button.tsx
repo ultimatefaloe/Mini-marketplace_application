@@ -12,7 +12,7 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
   variant = 'user',
   disabled = false,
 }) => {
-  const { mutate: googleAuth, isPending } = useUserGoogleAuth();
+  const { isPending } = useUserGoogleAuth();
 
   const handleGoogleAuth = () => {
     const authUrl = variant === 'admin' 

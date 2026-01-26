@@ -115,24 +115,6 @@ const contactInfo = [
   },
 ]
 
-const appLinks = [
-  {
-    platform: 'App Store',
-    href: 'https://apps.apple.com/app/fashionket',
-    color: 'bg-black text-white',
-  },
-  {
-    platform: 'Google Play',
-    href: 'https://play.google.com/store/apps/fashionket',
-    color: 'bg-gradient-to-r from-green-500 to-green-600 text-white',
-  },
-  {
-    platform: 'Huawei AppGallery',
-    href: 'https://appgallery.huawei.com/app/fashionket',
-    color: 'bg-gradient-to-r from-red-500 to-red-600 text-white',
-  },
-]
-
 export default function Footer() {
   const currentYear = new Date().getFullYear()
 

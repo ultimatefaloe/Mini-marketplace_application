@@ -54,7 +54,7 @@ function AdminLoginPage() {
           }
         },
         onError: (error: any) => {
-          toast.error('Login failed, Invalid credentials');
+          toast.error(error.message || 'Login failed, Invalid credentials');
         },
       });
     } catch (error: any) {
@@ -101,7 +101,7 @@ function AdminLoginPage() {
       title={
         <div className="flex items-center justify-center gap-2">
           <Building2 className="h-6 w-6" />
-          <span>Admin Portal</span>
+          <span>Business Portal</span>
         </div>
       }
       description="Sign in to manage your FashionKet store"
