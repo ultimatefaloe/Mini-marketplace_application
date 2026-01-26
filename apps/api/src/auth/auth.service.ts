@@ -46,7 +46,8 @@ export class AuthService {
       isActive: true
     });
 
-    return this.generateTokens(user._id.toString(), user.email, AppRolesEnum.USER, user.isActive);
+    const payload = this.parseUserToJwtPayload(user, AppRolesEnum.USER);
+    return this.generateTokens(payload);
   }
 
   async signInUser(dto: SignInDto) {
@@ -62,8 +63,9 @@ export class AuthService {
     if (!isValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
+    const payload = this.parseUserToJwtPayload(user, AppRolesEnum.USER);
 
-    return this.generateTokens(user._id.toString(), user.email, AppRolesEnum.USER, user.isActive);
+    return this.generateTokens(payload);
   }
 
   // ========== ADMIN AUTH ==========
@@ -84,7 +86,9 @@ export class AuthService {
       permissions: dto.permissions || {},
     });
 
-    return this.generateTokens(admin._id.toString(), admin.email, AppRolesEnum.ADMIN, admin.isActive);
+    const payload = this.parseUserToJwtPayload(admin, AppRolesEnum.ADMIN);
+
+    return this.generateTokens(payload);
   }
 
   async signInAdmin(dto: SignInDto) {
@@ -100,8 +104,9 @@ export class AuthService {
     if (!isValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
+    const payload = this.parseUserToJwtPayload(admin, AppRolesEnum.ADMIN);
 
-    return this.generateTokens(admin._id.toString(), admin.email, AppRolesEnum.ADMIN, admin.isActive);
+    return this.generateTokens(payload);
   }
 
   // ========== GOOGLE AUTH ==========
@@ -127,7 +132,9 @@ export class AuthService {
     }
 
     const role = type === AppRolesEnum.ADMIN ? (account as any).role : AppRolesEnum.USER;
-    return this.generateTokens(account._id.toString(), account.email, role, account.isActive);
+    const payload = this.parseUserToJwtPayload(account, role);
+
+    return this.generateTokens(payload);
   }
 
   // ========== PASSWORD RESET ==========
@@ -182,20 +189,31 @@ export class AuthService {
     return { message: 'Password reset successful' };
   }
 
+
+  private parseUserToJwtPayload(
+    user: any,
+    role: AppRolesEnum
+  ): JwtPayload {
+    // Convert mongoose document → plain object safely
+    const plainUser = typeof user.toObject === 'function'
+      ? user.toObject()
+      : user;
+
+    return {
+      auth_id: plainUser._id.toString(),
+      fullName: plainUser.fullName,
+      email: plainUser.email,
+      phone: plainUser.phone,
+      role,
+      isActive: plainUser.isActive,
+    };
+  }
+
+
   // ========== HELPERS ==========
   private async generateTokens(
-    auth_id: string,
-    email: string,
-    role: AppRoles,
-    isActive: boolean
+    payload: JwtPayload
   ) {
-    const payload: JwtPayload = {
-      auth_id,
-      email,
-      role,
-      isActive,
-    };
-
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
         secret: this.config.get<string>('JWT_SECRET')

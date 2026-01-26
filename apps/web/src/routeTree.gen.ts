@@ -9,50 +9,608 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as rootRootLayoutRouteImport } from './routes/(root)/_rootLayout'
+import { Route as authAuthRouteImport } from './routes/(auth)/_auth'
+import { Route as rootRootLayoutIndexRouteImport } from './routes/(root)/_rootLayout/index'
+import { Route as rootRootLayoutTermsRouteImport } from './routes/(root)/_rootLayout/terms'
+import { Route as rootRootLayoutSearchRouteImport } from './routes/(root)/_rootLayout/search'
+import { Route as rootRootLayoutPrivacyRouteImport } from './routes/(root)/_rootLayout/privacy'
+import { Route as rootRootLayoutCookiesRouteImport } from './routes/(root)/_rootLayout/cookies'
+import { Route as rootRootLayout_authenticatedRouteImport } from './routes/(root)/_rootLayout/__authenticated'
+import { Route as authAuthSignupRouteImport } from './routes/(auth)/_auth/signup'
+import { Route as authAuthResetPasswordRouteImport } from './routes/(auth)/_auth/reset-password'
+import { Route as authAuthLoginRouteImport } from './routes/(auth)/_auth/login'
+import { Route as authAuthForgotPasswordRouteImport } from './routes/(auth)/_auth/forgot-password'
+import { Route as adminAdminAdminLayoutRouteImport } from './routes/(admin)/admin/_adminLayout'
+import { Route as rootRootLayoutProductsIndexRouteImport } from './routes/(root)/_rootLayout/products/index'
+import { Route as rootRootLayoutCategoriesIndexRouteImport } from './routes/(root)/_rootLayout/categories/index'
+import { Route as adminAdminAdminLayoutIndexRouteImport } from './routes/(admin)/admin/_adminLayout/index'
+import { Route as rootRootLayoutProductsSlugRouteImport } from './routes/(root)/_rootLayout/products/$slug'
+import { Route as rootRootLayoutCategoriesSlugRouteImport } from './routes/(root)/_rootLayout/categories/$slug'
+import { Route as authAuthAdminResetPasswordRouteImport } from './routes/(auth)/_auth/admin/reset-password'
+import { Route as authAuthAdminRegisterRouteImport } from './routes/(auth)/_auth/admin/register'
+import { Route as authAuthAdminLoginRouteImport } from './routes/(auth)/_auth/admin/login'
+import { Route as authAuthAdminForgotPasswordRouteImport } from './routes/(auth)/_auth/admin/forgot-password'
+import { Route as adminAdminAdminLayoutProductsRouteImport } from './routes/(admin)/admin/_adminLayout/products'
+import { Route as rootRootLayoutAuthenticatedOrdersIndexRouteImport } from './routes/(root)/_rootLayout/_authenticated/orders/index'
+import { Route as rootRootLayoutAuthenticatedCartIndexRouteImport } from './routes/(root)/_rootLayout/_authenticated/cart/index'
+import { Route as rootRootLayoutAuthenticatedAccountIndexRouteImport } from './routes/(root)/_rootLayout/_authenticated/account/index'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const rootRootLayoutRoute = rootRootLayoutRouteImport.update({
+  id: '/(root)/_rootLayout',
   getParentRoute: () => rootRouteImport,
 } as any)
+const authAuthRoute = authAuthRouteImport.update({
+  id: '/(auth)/_auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const rootRootLayoutIndexRoute = rootRootLayoutIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRootLayoutRoute,
+} as any)
+const rootRootLayoutTermsRoute = rootRootLayoutTermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRootLayoutRoute,
+} as any)
+const rootRootLayoutSearchRoute = rootRootLayoutSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRootLayoutRoute,
+} as any)
+const rootRootLayoutPrivacyRoute = rootRootLayoutPrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRootLayoutRoute,
+} as any)
+const rootRootLayoutCookiesRoute = rootRootLayoutCookiesRouteImport.update({
+  id: '/cookies',
+  path: '/cookies',
+  getParentRoute: () => rootRootLayoutRoute,
+} as any)
+const rootRootLayout_authenticatedRoute =
+  rootRootLayout_authenticatedRouteImport.update({
+    id: '/__authenticated',
+    getParentRoute: () => rootRootLayoutRoute,
+  } as any)
+const authAuthSignupRoute = authAuthSignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => authAuthRoute,
+} as any)
+const authAuthResetPasswordRoute = authAuthResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => authAuthRoute,
+} as any)
+const authAuthLoginRoute = authAuthLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => authAuthRoute,
+} as any)
+const authAuthForgotPasswordRoute = authAuthForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => authAuthRoute,
+} as any)
+const adminAdminAdminLayoutRoute = adminAdminAdminLayoutRouteImport.update({
+  id: '/(admin)/admin/_adminLayout',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const rootRootLayoutProductsIndexRoute =
+  rootRootLayoutProductsIndexRouteImport.update({
+    id: '/products/',
+    path: '/products/',
+    getParentRoute: () => rootRootLayoutRoute,
+  } as any)
+const rootRootLayoutCategoriesIndexRoute =
+  rootRootLayoutCategoriesIndexRouteImport.update({
+    id: '/categories/',
+    path: '/categories/',
+    getParentRoute: () => rootRootLayoutRoute,
+  } as any)
+const adminAdminAdminLayoutIndexRoute =
+  adminAdminAdminLayoutIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => adminAdminAdminLayoutRoute,
+  } as any)
+const rootRootLayoutProductsSlugRoute =
+  rootRootLayoutProductsSlugRouteImport.update({
+    id: '/products/$slug',
+    path: '/products/$slug',
+    getParentRoute: () => rootRootLayoutRoute,
+  } as any)
+const rootRootLayoutCategoriesSlugRoute =
+  rootRootLayoutCategoriesSlugRouteImport.update({
+    id: '/categories/$slug',
+    path: '/categories/$slug',
+    getParentRoute: () => rootRootLayoutRoute,
+  } as any)
+const authAuthAdminResetPasswordRoute =
+  authAuthAdminResetPasswordRouteImport.update({
+    id: '/admin/reset-password',
+    path: '/admin/reset-password',
+    getParentRoute: () => authAuthRoute,
+  } as any)
+const authAuthAdminRegisterRoute = authAuthAdminRegisterRouteImport.update({
+  id: '/admin/register',
+  path: '/admin/register',
+  getParentRoute: () => authAuthRoute,
+} as any)
+const authAuthAdminLoginRoute = authAuthAdminLoginRouteImport.update({
+  id: '/admin/login',
+  path: '/admin/login',
+  getParentRoute: () => authAuthRoute,
+} as any)
+const authAuthAdminForgotPasswordRoute =
+  authAuthAdminForgotPasswordRouteImport.update({
+    id: '/admin/forgot-password',
+    path: '/admin/forgot-password',
+    getParentRoute: () => authAuthRoute,
+  } as any)
+const adminAdminAdminLayoutProductsRoute =
+  adminAdminAdminLayoutProductsRouteImport.update({
+    id: '/products',
+    path: '/products',
+    getParentRoute: () => adminAdminAdminLayoutRoute,
+  } as any)
+const rootRootLayoutAuthenticatedOrdersIndexRoute =
+  rootRootLayoutAuthenticatedOrdersIndexRouteImport.update({
+    id: '/_authenticated/orders/',
+    path: '/orders/',
+    getParentRoute: () => rootRootLayoutRoute,
+  } as any)
+const rootRootLayoutAuthenticatedCartIndexRoute =
+  rootRootLayoutAuthenticatedCartIndexRouteImport.update({
+    id: '/_authenticated/cart/',
+    path: '/cart/',
+    getParentRoute: () => rootRootLayoutRoute,
+  } as any)
+const rootRootLayoutAuthenticatedAccountIndexRoute =
+  rootRootLayoutAuthenticatedAccountIndexRouteImport.update({
+    id: '/_authenticated/account/',
+    path: '/account/',
+    getParentRoute: () => rootRootLayoutRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/admin': typeof adminAdminAdminLayoutRouteWithChildren
+  '/forgot-password': typeof authAuthForgotPasswordRoute
+  '/login': typeof authAuthLoginRoute
+  '/reset-password': typeof authAuthResetPasswordRoute
+  '/signup': typeof authAuthSignupRoute
+  '/cookies': typeof rootRootLayoutCookiesRoute
+  '/privacy': typeof rootRootLayoutPrivacyRoute
+  '/search': typeof rootRootLayoutSearchRoute
+  '/terms': typeof rootRootLayoutTermsRoute
+  '/': typeof rootRootLayoutIndexRoute
+  '/admin/products': typeof adminAdminAdminLayoutProductsRoute
+  '/admin/forgot-password': typeof authAuthAdminForgotPasswordRoute
+  '/admin/login': typeof authAuthAdminLoginRoute
+  '/admin/register': typeof authAuthAdminRegisterRoute
+  '/admin/reset-password': typeof authAuthAdminResetPasswordRoute
+  '/categories/$slug': typeof rootRootLayoutCategoriesSlugRoute
+  '/products/$slug': typeof rootRootLayoutProductsSlugRoute
+  '/admin/': typeof adminAdminAdminLayoutIndexRoute
+  '/categories': typeof rootRootLayoutCategoriesIndexRoute
+  '/products': typeof rootRootLayoutProductsIndexRoute
+  '/account': typeof rootRootLayoutAuthenticatedAccountIndexRoute
+  '/cart': typeof rootRootLayoutAuthenticatedCartIndexRoute
+  '/orders': typeof rootRootLayoutAuthenticatedOrdersIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/forgot-password': typeof authAuthForgotPasswordRoute
+  '/login': typeof authAuthLoginRoute
+  '/reset-password': typeof authAuthResetPasswordRoute
+  '/signup': typeof authAuthSignupRoute
+  '/cookies': typeof rootRootLayoutCookiesRoute
+  '/privacy': typeof rootRootLayoutPrivacyRoute
+  '/search': typeof rootRootLayoutSearchRoute
+  '/terms': typeof rootRootLayoutTermsRoute
+  '/': typeof rootRootLayoutIndexRoute
+  '/admin/products': typeof adminAdminAdminLayoutProductsRoute
+  '/admin/forgot-password': typeof authAuthAdminForgotPasswordRoute
+  '/admin/login': typeof authAuthAdminLoginRoute
+  '/admin/register': typeof authAuthAdminRegisterRoute
+  '/admin/reset-password': typeof authAuthAdminResetPasswordRoute
+  '/categories/$slug': typeof rootRootLayoutCategoriesSlugRoute
+  '/products/$slug': typeof rootRootLayoutProductsSlugRoute
+  '/admin': typeof adminAdminAdminLayoutIndexRoute
+  '/categories': typeof rootRootLayoutCategoriesIndexRoute
+  '/products': typeof rootRootLayoutProductsIndexRoute
+  '/account': typeof rootRootLayoutAuthenticatedAccountIndexRoute
+  '/cart': typeof rootRootLayoutAuthenticatedCartIndexRoute
+  '/orders': typeof rootRootLayoutAuthenticatedOrdersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/(auth)/_auth': typeof authAuthRouteWithChildren
+  '/(root)/_rootLayout': typeof rootRootLayoutRouteWithChildren
+  '/(admin)/admin/_adminLayout': typeof adminAdminAdminLayoutRouteWithChildren
+  '/(auth)/_auth/forgot-password': typeof authAuthForgotPasswordRoute
+  '/(auth)/_auth/login': typeof authAuthLoginRoute
+  '/(auth)/_auth/reset-password': typeof authAuthResetPasswordRoute
+  '/(auth)/_auth/signup': typeof authAuthSignupRoute
+  '/(root)/_rootLayout/__authenticated': typeof rootRootLayout_authenticatedRoute
+  '/(root)/_rootLayout/cookies': typeof rootRootLayoutCookiesRoute
+  '/(root)/_rootLayout/privacy': typeof rootRootLayoutPrivacyRoute
+  '/(root)/_rootLayout/search': typeof rootRootLayoutSearchRoute
+  '/(root)/_rootLayout/terms': typeof rootRootLayoutTermsRoute
+  '/(root)/_rootLayout/': typeof rootRootLayoutIndexRoute
+  '/(admin)/admin/_adminLayout/products': typeof adminAdminAdminLayoutProductsRoute
+  '/(auth)/_auth/admin/forgot-password': typeof authAuthAdminForgotPasswordRoute
+  '/(auth)/_auth/admin/login': typeof authAuthAdminLoginRoute
+  '/(auth)/_auth/admin/register': typeof authAuthAdminRegisterRoute
+  '/(auth)/_auth/admin/reset-password': typeof authAuthAdminResetPasswordRoute
+  '/(root)/_rootLayout/categories/$slug': typeof rootRootLayoutCategoriesSlugRoute
+  '/(root)/_rootLayout/products/$slug': typeof rootRootLayoutProductsSlugRoute
+  '/(admin)/admin/_adminLayout/': typeof adminAdminAdminLayoutIndexRoute
+  '/(root)/_rootLayout/categories/': typeof rootRootLayoutCategoriesIndexRoute
+  '/(root)/_rootLayout/products/': typeof rootRootLayoutProductsIndexRoute
+  '/(root)/_rootLayout/_authenticated/account/': typeof rootRootLayoutAuthenticatedAccountIndexRoute
+  '/(root)/_rootLayout/_authenticated/cart/': typeof rootRootLayoutAuthenticatedCartIndexRoute
+  '/(root)/_rootLayout/_authenticated/orders/': typeof rootRootLayoutAuthenticatedOrdersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/admin'
+    | '/forgot-password'
+    | '/login'
+    | '/reset-password'
+    | '/signup'
+    | '/cookies'
+    | '/privacy'
+    | '/search'
+    | '/terms'
+    | '/'
+    | '/admin/products'
+    | '/admin/forgot-password'
+    | '/admin/login'
+    | '/admin/register'
+    | '/admin/reset-password'
+    | '/categories/$slug'
+    | '/products/$slug'
+    | '/admin/'
+    | '/categories'
+    | '/products'
+    | '/account'
+    | '/cart'
+    | '/orders'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/forgot-password'
+    | '/login'
+    | '/reset-password'
+    | '/signup'
+    | '/cookies'
+    | '/privacy'
+    | '/search'
+    | '/terms'
+    | '/'
+    | '/admin/products'
+    | '/admin/forgot-password'
+    | '/admin/login'
+    | '/admin/register'
+    | '/admin/reset-password'
+    | '/categories/$slug'
+    | '/products/$slug'
+    | '/admin'
+    | '/categories'
+    | '/products'
+    | '/account'
+    | '/cart'
+    | '/orders'
+  id:
+    | '__root__'
+    | '/(auth)/_auth'
+    | '/(root)/_rootLayout'
+    | '/(admin)/admin/_adminLayout'
+    | '/(auth)/_auth/forgot-password'
+    | '/(auth)/_auth/login'
+    | '/(auth)/_auth/reset-password'
+    | '/(auth)/_auth/signup'
+    | '/(root)/_rootLayout/__authenticated'
+    | '/(root)/_rootLayout/cookies'
+    | '/(root)/_rootLayout/privacy'
+    | '/(root)/_rootLayout/search'
+    | '/(root)/_rootLayout/terms'
+    | '/(root)/_rootLayout/'
+    | '/(admin)/admin/_adminLayout/products'
+    | '/(auth)/_auth/admin/forgot-password'
+    | '/(auth)/_auth/admin/login'
+    | '/(auth)/_auth/admin/register'
+    | '/(auth)/_auth/admin/reset-password'
+    | '/(root)/_rootLayout/categories/$slug'
+    | '/(root)/_rootLayout/products/$slug'
+    | '/(admin)/admin/_adminLayout/'
+    | '/(root)/_rootLayout/categories/'
+    | '/(root)/_rootLayout/products/'
+    | '/(root)/_rootLayout/_authenticated/account/'
+    | '/(root)/_rootLayout/_authenticated/cart/'
+    | '/(root)/_rootLayout/_authenticated/orders/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  authAuthRoute: typeof authAuthRouteWithChildren
+  rootRootLayoutRoute: typeof rootRootLayoutRouteWithChildren
+  adminAdminAdminLayoutRoute: typeof adminAdminAdminLayoutRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/(root)/_rootLayout': {
+      id: '/(root)/_rootLayout'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof rootRootLayoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(auth)/_auth': {
+      id: '/(auth)/_auth'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof authAuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(root)/_rootLayout/': {
+      id: '/(root)/_rootLayout/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof rootRootLayoutIndexRouteImport
+      parentRoute: typeof rootRootLayoutRoute
+    }
+    '/(root)/_rootLayout/terms': {
+      id: '/(root)/_rootLayout/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof rootRootLayoutTermsRouteImport
+      parentRoute: typeof rootRootLayoutRoute
+    }
+    '/(root)/_rootLayout/search': {
+      id: '/(root)/_rootLayout/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof rootRootLayoutSearchRouteImport
+      parentRoute: typeof rootRootLayoutRoute
+    }
+    '/(root)/_rootLayout/privacy': {
+      id: '/(root)/_rootLayout/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof rootRootLayoutPrivacyRouteImport
+      parentRoute: typeof rootRootLayoutRoute
+    }
+    '/(root)/_rootLayout/cookies': {
+      id: '/(root)/_rootLayout/cookies'
+      path: '/cookies'
+      fullPath: '/cookies'
+      preLoaderRoute: typeof rootRootLayoutCookiesRouteImport
+      parentRoute: typeof rootRootLayoutRoute
+    }
+    '/(root)/_rootLayout/__authenticated': {
+      id: '/(root)/_rootLayout/__authenticated'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof rootRootLayout_authenticatedRouteImport
+      parentRoute: typeof rootRootLayoutRoute
+    }
+    '/(auth)/_auth/signup': {
+      id: '/(auth)/_auth/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof authAuthSignupRouteImport
+      parentRoute: typeof authAuthRoute
+    }
+    '/(auth)/_auth/reset-password': {
+      id: '/(auth)/_auth/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof authAuthResetPasswordRouteImport
+      parentRoute: typeof authAuthRoute
+    }
+    '/(auth)/_auth/login': {
+      id: '/(auth)/_auth/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof authAuthLoginRouteImport
+      parentRoute: typeof authAuthRoute
+    }
+    '/(auth)/_auth/forgot-password': {
+      id: '/(auth)/_auth/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof authAuthForgotPasswordRouteImport
+      parentRoute: typeof authAuthRoute
+    }
+    '/(admin)/admin/_adminLayout': {
+      id: '/(admin)/admin/_adminLayout'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof adminAdminAdminLayoutRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/(root)/_rootLayout/products/': {
+      id: '/(root)/_rootLayout/products/'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof rootRootLayoutProductsIndexRouteImport
+      parentRoute: typeof rootRootLayoutRoute
+    }
+    '/(root)/_rootLayout/categories/': {
+      id: '/(root)/_rootLayout/categories/'
+      path: '/categories'
+      fullPath: '/categories'
+      preLoaderRoute: typeof rootRootLayoutCategoriesIndexRouteImport
+      parentRoute: typeof rootRootLayoutRoute
+    }
+    '/(admin)/admin/_adminLayout/': {
+      id: '/(admin)/admin/_adminLayout/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof adminAdminAdminLayoutIndexRouteImport
+      parentRoute: typeof adminAdminAdminLayoutRoute
+    }
+    '/(root)/_rootLayout/products/$slug': {
+      id: '/(root)/_rootLayout/products/$slug'
+      path: '/products/$slug'
+      fullPath: '/products/$slug'
+      preLoaderRoute: typeof rootRootLayoutProductsSlugRouteImport
+      parentRoute: typeof rootRootLayoutRoute
+    }
+    '/(root)/_rootLayout/categories/$slug': {
+      id: '/(root)/_rootLayout/categories/$slug'
+      path: '/categories/$slug'
+      fullPath: '/categories/$slug'
+      preLoaderRoute: typeof rootRootLayoutCategoriesSlugRouteImport
+      parentRoute: typeof rootRootLayoutRoute
+    }
+    '/(auth)/_auth/admin/reset-password': {
+      id: '/(auth)/_auth/admin/reset-password'
+      path: '/admin/reset-password'
+      fullPath: '/admin/reset-password'
+      preLoaderRoute: typeof authAuthAdminResetPasswordRouteImport
+      parentRoute: typeof authAuthRoute
+    }
+    '/(auth)/_auth/admin/register': {
+      id: '/(auth)/_auth/admin/register'
+      path: '/admin/register'
+      fullPath: '/admin/register'
+      preLoaderRoute: typeof authAuthAdminRegisterRouteImport
+      parentRoute: typeof authAuthRoute
+    }
+    '/(auth)/_auth/admin/login': {
+      id: '/(auth)/_auth/admin/login'
+      path: '/admin/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof authAuthAdminLoginRouteImport
+      parentRoute: typeof authAuthRoute
+    }
+    '/(auth)/_auth/admin/forgot-password': {
+      id: '/(auth)/_auth/admin/forgot-password'
+      path: '/admin/forgot-password'
+      fullPath: '/admin/forgot-password'
+      preLoaderRoute: typeof authAuthAdminForgotPasswordRouteImport
+      parentRoute: typeof authAuthRoute
+    }
+    '/(admin)/admin/_adminLayout/products': {
+      id: '/(admin)/admin/_adminLayout/products'
+      path: '/products'
+      fullPath: '/admin/products'
+      preLoaderRoute: typeof adminAdminAdminLayoutProductsRouteImport
+      parentRoute: typeof adminAdminAdminLayoutRoute
+    }
+    '/(root)/_rootLayout/_authenticated/orders/': {
+      id: '/(root)/_rootLayout/_authenticated/orders/'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof rootRootLayoutAuthenticatedOrdersIndexRouteImport
+      parentRoute: typeof rootRootLayoutRoute
+    }
+    '/(root)/_rootLayout/_authenticated/cart/': {
+      id: '/(root)/_rootLayout/_authenticated/cart/'
+      path: '/cart'
+      fullPath: '/cart'
+      preLoaderRoute: typeof rootRootLayoutAuthenticatedCartIndexRouteImport
+      parentRoute: typeof rootRootLayoutRoute
+    }
+    '/(root)/_rootLayout/_authenticated/account/': {
+      id: '/(root)/_rootLayout/_authenticated/account/'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof rootRootLayoutAuthenticatedAccountIndexRouteImport
+      parentRoute: typeof rootRootLayoutRoute
     }
   }
 }
 
+interface authAuthRouteChildren {
+  authAuthForgotPasswordRoute: typeof authAuthForgotPasswordRoute
+  authAuthLoginRoute: typeof authAuthLoginRoute
+  authAuthResetPasswordRoute: typeof authAuthResetPasswordRoute
+  authAuthSignupRoute: typeof authAuthSignupRoute
+  authAuthAdminForgotPasswordRoute: typeof authAuthAdminForgotPasswordRoute
+  authAuthAdminLoginRoute: typeof authAuthAdminLoginRoute
+  authAuthAdminRegisterRoute: typeof authAuthAdminRegisterRoute
+  authAuthAdminResetPasswordRoute: typeof authAuthAdminResetPasswordRoute
+}
+
+const authAuthRouteChildren: authAuthRouteChildren = {
+  authAuthForgotPasswordRoute: authAuthForgotPasswordRoute,
+  authAuthLoginRoute: authAuthLoginRoute,
+  authAuthResetPasswordRoute: authAuthResetPasswordRoute,
+  authAuthSignupRoute: authAuthSignupRoute,
+  authAuthAdminForgotPasswordRoute: authAuthAdminForgotPasswordRoute,
+  authAuthAdminLoginRoute: authAuthAdminLoginRoute,
+  authAuthAdminRegisterRoute: authAuthAdminRegisterRoute,
+  authAuthAdminResetPasswordRoute: authAuthAdminResetPasswordRoute,
+}
+
+const authAuthRouteWithChildren = authAuthRoute._addFileChildren(
+  authAuthRouteChildren,
+)
+
+interface rootRootLayoutRouteChildren {
+  rootRootLayout_authenticatedRoute: typeof rootRootLayout_authenticatedRoute
+  rootRootLayoutCookiesRoute: typeof rootRootLayoutCookiesRoute
+  rootRootLayoutPrivacyRoute: typeof rootRootLayoutPrivacyRoute
+  rootRootLayoutSearchRoute: typeof rootRootLayoutSearchRoute
+  rootRootLayoutTermsRoute: typeof rootRootLayoutTermsRoute
+  rootRootLayoutIndexRoute: typeof rootRootLayoutIndexRoute
+  rootRootLayoutCategoriesSlugRoute: typeof rootRootLayoutCategoriesSlugRoute
+  rootRootLayoutProductsSlugRoute: typeof rootRootLayoutProductsSlugRoute
+  rootRootLayoutCategoriesIndexRoute: typeof rootRootLayoutCategoriesIndexRoute
+  rootRootLayoutProductsIndexRoute: typeof rootRootLayoutProductsIndexRoute
+  rootRootLayoutAuthenticatedAccountIndexRoute: typeof rootRootLayoutAuthenticatedAccountIndexRoute
+  rootRootLayoutAuthenticatedCartIndexRoute: typeof rootRootLayoutAuthenticatedCartIndexRoute
+  rootRootLayoutAuthenticatedOrdersIndexRoute: typeof rootRootLayoutAuthenticatedOrdersIndexRoute
+}
+
+const rootRootLayoutRouteChildren: rootRootLayoutRouteChildren = {
+  rootRootLayout_authenticatedRoute: rootRootLayout_authenticatedRoute,
+  rootRootLayoutCookiesRoute: rootRootLayoutCookiesRoute,
+  rootRootLayoutPrivacyRoute: rootRootLayoutPrivacyRoute,
+  rootRootLayoutSearchRoute: rootRootLayoutSearchRoute,
+  rootRootLayoutTermsRoute: rootRootLayoutTermsRoute,
+  rootRootLayoutIndexRoute: rootRootLayoutIndexRoute,
+  rootRootLayoutCategoriesSlugRoute: rootRootLayoutCategoriesSlugRoute,
+  rootRootLayoutProductsSlugRoute: rootRootLayoutProductsSlugRoute,
+  rootRootLayoutCategoriesIndexRoute: rootRootLayoutCategoriesIndexRoute,
+  rootRootLayoutProductsIndexRoute: rootRootLayoutProductsIndexRoute,
+  rootRootLayoutAuthenticatedAccountIndexRoute:
+    rootRootLayoutAuthenticatedAccountIndexRoute,
+  rootRootLayoutAuthenticatedCartIndexRoute:
+    rootRootLayoutAuthenticatedCartIndexRoute,
+  rootRootLayoutAuthenticatedOrdersIndexRoute:
+    rootRootLayoutAuthenticatedOrdersIndexRoute,
+}
+
+const rootRootLayoutRouteWithChildren = rootRootLayoutRoute._addFileChildren(
+  rootRootLayoutRouteChildren,
+)
+
+interface adminAdminAdminLayoutRouteChildren {
+  adminAdminAdminLayoutProductsRoute: typeof adminAdminAdminLayoutProductsRoute
+  adminAdminAdminLayoutIndexRoute: typeof adminAdminAdminLayoutIndexRoute
+}
+
+const adminAdminAdminLayoutRouteChildren: adminAdminAdminLayoutRouteChildren = {
+  adminAdminAdminLayoutProductsRoute: adminAdminAdminLayoutProductsRoute,
+  adminAdminAdminLayoutIndexRoute: adminAdminAdminLayoutIndexRoute,
+}
+
+const adminAdminAdminLayoutRouteWithChildren =
+  adminAdminAdminLayoutRoute._addFileChildren(
+    adminAdminAdminLayoutRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  authAuthRoute: authAuthRouteWithChildren,
+  rootRootLayoutRoute: rootRootLayoutRouteWithChildren,
+  adminAdminAdminLayoutRoute: adminAdminAdminLayoutRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

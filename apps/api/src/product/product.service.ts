@@ -9,6 +9,8 @@ import { Model, Types } from 'mongoose';
 import { CreateProductDto, UpdateProductDto, QueryProductDto } from './dto';
 import type { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 import { Product, ProductDocument } from 'src/models/product.shcema';
+import slugify from 'slugify';
+
 
 @Injectable()
 export class ProductService {
@@ -16,14 +18,36 @@ export class ProductService {
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
   ) { }
 
-  async create(createProductDto: CreateProductDto, images: string[], user: JwtPayload) {
+  async create(
+    createProductDto: CreateProductDto,
+    images: string[] = [],
+    user: JwtPayload,
+  ) {
+    // Generate base slug
+    const baseSlug = slugify(createProductDto.name, {
+      lower: true,
+      strict: true, // removes special characters
+      trim: true,
+    });
+
+    // Ensure slug uniqueness
+    let slug = baseSlug;
+    let count = 1;
+
+    while (await this.productModel.exists({ slug })) {
+      slug = `${baseSlug}-${count++}`;
+    }
+
     const product = await this.productModel.create({
       ...createProductDto,
       images,
+      slug,
       createdBy: new Types.ObjectId(user.auth_id),
     });
+
     return this.toDetailEntity(product);
   }
+
 
   async findAll(query: QueryProductDto) {
     const {
@@ -85,7 +109,7 @@ export class ProductService {
       this.productModel
         .find(filter)
         .select(
-          '_id name description categoryId brand price discount stock images isActive tags viewCount soldCount createdAt updatedAt',
+          '_id name description slug categoryId brand price discount stock images isActive tags viewCount soldCount createdAt updatedAt',
         )
         .sort(sort)
         .skip(skip)
@@ -247,6 +271,7 @@ export class ProductService {
     const {
       _id,
       name,
+      slug,
       description,
       categoryId,
       brand,
@@ -265,6 +290,7 @@ export class ProductService {
     return {
       _id,
       name,
+      slug,
       description,
       categoryId,
       brand,
