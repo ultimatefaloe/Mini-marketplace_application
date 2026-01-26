@@ -54,33 +54,6 @@ const footerLinks = {
   ],
 }
 
-const features = [
-  {
-    icon: Truck,
-    title: 'Free Shipping',
-    description: 'On orders over $50',
-    color: 'from-mmp-accent to-mmp-secondary',
-  },
-  {
-    icon: Shield,
-    title: 'Secure Payment',
-    description: '100% secure & encrypted',
-    color: 'from-mmp-primary to-mmp-accent',
-  },
-  {
-    icon: RefreshCw,
-    title: 'Easy Returns',
-    description: '30-day return policy',
-    color: 'from-mmp-secondary to-mmp-accent',
-  },
-  {
-    icon: CreditCard,
-    title: 'Flexible Payment',
-    description: 'Pay with ease',
-    color: 'from-mmp-accent to-mmp-primary',
-  },
-]
-
 const socialLinks = [
   {
     icon: Facebook,
@@ -120,35 +93,6 @@ export default function Footer() {
 
   return (
     <footer className="bg-mmp-primary2 text-mmp-neutral">
-      {/* Features Banner */}
-      <div className="border-b border-mmp-primary/30">
-        <div className="container mx-auto px-4 py-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {features.map((feature, index) => {
-              const Icon = feature.icon
-              return (
-                <div
-                  key={index}
-                  className="flex items-center gap-3 p-4 rounded-lg bg-gradient-to-br from-mmp-primary/5 to-mmp-accent/5 hover:from-mmp-primary/10 hover:to-mmp-accent/10 transition-all"
-                >
-                  <div
-                    className={`p-2 rounded-lg bg-gradient-to-r ${feature.color}`}
-                  >
-                    <Icon className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-sm">{feature.title}</h4>
-                    <p className="text-xs text-mmp-neutral/60">
-                      {feature.description}
-                    </p>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </div>
-
       {/* Main Footer */}
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
@@ -407,8 +351,7 @@ export default function Footer() {
             <p className="text-xs text-mmp-neutral/50 max-w-3xl mx-auto">
               FashionKet is a premium fashion retailer. All products are subject
               to availability. Prices and offers are subject to change without
-              notice. *Free shipping applies to orders over $50 before tax and
-              shipping.
+              notice.
             </p>
           </div>
         </div>

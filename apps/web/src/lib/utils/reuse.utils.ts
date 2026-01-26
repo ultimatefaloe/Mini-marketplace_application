@@ -46,3 +46,21 @@ export const isToday = (isoDate: string) => {
   const date = new Date(isoDate).toISOString().split("T")[0];
   return date === today;
 };
+
+// export const formatCurrency = (amount: number | string): string => {
+//   return new Intl.NumberFormat('en-NG', {
+//     style: 'currency',
+//     currency: 'NGN',
+//     minimumFractionDigits: 0,
+//     maximumFractionDigits: 0,
+//   }).format(amount);
+// };
+
+export const generateSlug = (text: string): string => {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/--+/g, '-')
+    .trim();
+};

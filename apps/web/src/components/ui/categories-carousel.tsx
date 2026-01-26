@@ -1,87 +1,84 @@
 import { Badge } from './badge'
-import {
-  Shirt,
-  Watch,
-  Glasses,
-  Sparkles,
-  TrendingUp,
-  Zap,
-  Crown,
-} from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import { ScrollArea, ScrollBar } from './scroll-area'
 import { Link } from '@tanstack/react-router'
-import { Card, CardContent } from './card'
+import { Card } from './card'
 import type { ICategoryTreeNode } from '@/types'
-
-const iconMap: Record<string, any> = {
-  Shirt,
-  Watch,
-  Glasses,
-  Sparkles,
-  TrendingUp,
-  Zap,
-  Crown,
-}
 
 interface CategoryProps {
   categories: ICategoryTreeNode[]
 }
+
 const CategoriesCarousel = ({ categories }: CategoryProps) => {
   return (
-    <section className="py-12 md:py-16">
-      <div className="container mx-auto px-4">
-        <div className="text-center">
-          <Badge className="mb-3 bg-gradient-to-r from-mmp-primary/20 to-mmp-accent/20 text-mmp-primary border-0">
+    <section className="py-6 md:py-8">
+      <div className="container mx-auto px-3 md:px-4">
+        {/* Header Section - More compact */}
+        <div className="text-center mb-6 md:mb-8">
+          <Badge className="mb-2 bg-gradient-to-r from-mmp-primary/20 to-mmp-accent/20 text-mmp-primary border-0 text-xs px-3 py-1">
             <Sparkles className="h-3 w-3 mr-1" />
             Browse Collections
           </Badge>
-          <h2 className="text-3xl md:text-4xl font-bold text-mmp-primary2 mb-3">
+          <h2 className="text-2xl md:text-3xl font-bold text-mmp-primary2 mb-2">
             Shop By Category
           </h2>
-          <p className="text-mmp-neutral/60 max-w-2xl mx-auto">
-            Discover our carefully curated fashion collections across all
-            categories
+          <p className="text-mmp-neutral/60 text-sm md:text-base max-w-md mx-auto">
+            Discover our carefully curated fashion collections
           </p>
         </div>
 
-        {/* Mobile Carousel Container */}
-        <div className="md:hidden relative">
-          <ScrollArea className="w-full pb-4">
-            <div className="flex gap-3 min-w-max">
+        {/* Categories Container */}
+        <div className="relative md:hidden">
+          <ScrollArea className="w-full">
+            <div className="flex gap-3 min-w-max pb-2 md:pb-0">
               {categories.map((category) => {
-                const Icon = iconMap[category.icon]
+                // Use the icon field as image URL
+                const imageUrl = category.icon || '/placeholder-category.jpg'
+                
                 return (
                   <Link
                     key={category._id}
                     to="/categories/$slug"
                     params={{ slug: category.slug }}
-                    className="block w-[140px] flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-mmp-secondary focus-visible:ring-offset-2 rounded-xl"
+                    className="block w-[150px] flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-mmp-secondary focus-visible:ring-offset-2 rounded-xl"
                   >
-                    <Card className="h-full border-mmp-primary/10 hover:border-mmp-secondary/50 transition-all duration-300 hover:shadow-md active:scale-95 overflow-hidden bg-white">
-                      <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-                        <div className="w-14 h-14 mb-3 rounded-full bg-gradient-to-br from-mmp-primary/10 to-mmp-accent/10 flex items-center justify-center">
-                          {Icon && <Icon className="h-6 w-6 text-mmp-accent" />}
+                    <Card className="h-full border-mmp-primary/10 hover:border-mmp-secondary/50 transition-all duration-300 overflow-hidden bg-white shadow-sm hover:shadow-md active:scale-[0.98] p-0">
+                      {/* Image Container */}
+                      <div className="relative h-32 w-full overflow-hidden">
+                        <img
+                          src={imageUrl}
+                          alt={category.name}
+                          className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                          onError={(e) => {
+                            // Fallback if image fails to load
+                            const target = e.target as HTMLImageElement
+                            target.src = '/placeholder-category.jpg'
+                          }}
+                        />
+                        {/* Dark overlay for text readability */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
+                        
+                        {/* Category Name */}
+                        <div className="absolute bottom-0 left-0 right-0 p-3">
+                          <h3 className="font-semibold text-white text-sm leading-tight drop-shadow-md">
+                            {category.name}
+                          </h3>
                         </div>
-                        <h3 className="font-semibold text-mmp-primary2 text-sm line-clamp-2 h-10">
-                          {category.name}
-                        </h3>
-                        <p className="text-xs text-mmp-neutral/60 mt-1">
-                          Shop Now
-                        </p>
-                      </CardContent>
+                      </div>
                     </Card>
                   </Link>
                 )
               })}
             </div>
-            <ScrollBar orientation="horizontal" />
+            <ScrollBar orientation="horizontal" className="h-1" />
           </ScrollArea>
         </div>
 
-        {/* Desktop Grid */}
-        <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        {/* Desktop Grid - Hidden on mobile */}
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 mt-4">
           {categories.map((category) => {
-            const Icon = iconMap[category.icon]
+            const imageUrl = category.icon || '/placeholder-category.jpg'
+            
             return (
               <Link
                 key={category._id}
@@ -89,20 +86,30 @@ const CategoriesCarousel = ({ categories }: CategoryProps) => {
                 params={{ slug: category.slug }}
                 className="group focus:outline-none focus-visible:ring-2 focus-visible:ring-mmp-secondary focus-visible:ring-offset-2 rounded-xl"
               >
-                <Card className="h-full border-mmp-primary/10 hover:border-mmp-secondary/50 transition-all duration-300 hover:shadow-lg hover:translate-y-[-2px] overflow-hidden bg-white">
-                  <CardContent className="p-6 flex flex-col items-center justify-center text-center">
-                    <div className="w-16 h-16 mb-4 rounded-full bg-gradient-to-br from-mmp-primary/10 to-mmp-accent/10 flex items-center justify-center group-hover:from-mmp-accent/20 group-hover:to-mmp-secondary/20 transition-all duration-300">
-                      {Icon && (
-                        <Icon className="h-7 w-7 text-mmp-accent group-hover:text-mmp-secondary transition-colors" />
-                      )}
+                <Card className="h-full border-mmp-primary/10 hover:border-mmp-secondary/50 transition-all duration-300 overflow-hidden bg-white shadow-sm hover:shadow-lg hover:translate-y-[-2px] p-0">
+                  <div className="relative h-36 w-full overflow-hidden">
+                    <img
+                      src={imageUrl}
+                      alt={category.name}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.src = '/placeholder-category.jpg'
+                      }}
+                    />
+                    {/* Dark overlay with gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+                    
+                    {/* Category Name with hover effect */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4 transition-transform duration-300 group-hover:translate-y-[-4px]">
+                      <h3 className="font-semibold text-white text-base leading-tight drop-shadow-lg">
+                        {category.name}
+                      </h3>
+                      <p className="text-xs text-white/80 mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        Shop Now →
+                      </p>
                     </div>
-                    <h3 className="font-semibold text-mmp-primary2 group-hover:text-mmp-secondary transition-colors">
-                      {category.name}
-                    </h3>
-                    <p className="text-xs text-mmp-neutral/60 mt-2">
-                      Explore collection
-                    </p>
-                  </CardContent>
+                  </div>
                 </Card>
               </Link>
             )
