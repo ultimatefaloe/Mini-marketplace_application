@@ -13,7 +13,7 @@ import type {
 export const useCart = () => {
   return useQuery({
     queryKey: queryKeys.cart.detail(),
-    queryFn: () => apiClient.get<FrontendSafe<ICart>>('/cart'),
+    queryFn: () => apiClient.get<FrontendSafe<ICart>>('/carts'),
   });
 };
 
@@ -23,7 +23,7 @@ export const useAddToCart = () => {
 
   return useMutation({
     mutationFn: (data: IAddToCartPayload) =>
-      apiClient.post<FrontendSafe<ICart>>('/cart/items', data),
+      apiClient.post<FrontendSafe<ICart>>('/carts/items', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.cart.detail() });
     },
@@ -35,7 +35,7 @@ export const useUpdateCartItem = () => {
 
   return useMutation({
     mutationFn: (data: IUpdateCartItemPayload) =>
-      apiClient.patch<FrontendSafe<ICart>>('/cart/items', data),
+      apiClient.patch<FrontendSafe<ICart>>('/carts/items', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.cart.detail() });
     },
@@ -47,7 +47,7 @@ export const useRemoveFromCart = () => {
 
   return useMutation({
     mutationFn: (productId: string) =>
-      apiClient.delete<FrontendSafe<ICart>>(`/cart/items/${productId}`),
+      apiClient.delete<FrontendSafe<ICart>>(`/carts/items/${productId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.cart.detail() });
     },
@@ -58,7 +58,7 @@ export const useClearCart = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => apiClient.delete<{ message: string }>('/cart'),
+    mutationFn: () => apiClient.delete<{ message: string }>('/carts'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.cart.detail() });
     },

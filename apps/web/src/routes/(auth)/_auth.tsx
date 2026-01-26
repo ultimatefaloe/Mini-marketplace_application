@@ -1,14 +1,19 @@
-import { createFileRoute, Outlet } from '@tanstack/react-router'
+import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { AuthGuard } from '@/components/auth';
+import { useTokenRefresh } from '@/hooks';
 
 export const Route = createFileRoute('/(auth)/_auth')({
-  component: RouteComponent,
-})
+  component: AuthLayout,
+});
 
-function RouteComponent() {
+function AuthLayout() {
+  useTokenRefresh();
+
   return (
-    <div>
-      <h1>Auth LAyout goes in here</h1>
-      <Outlet />
-    </div>
-  )
+    <AuthGuard requireAuth={false}>
+      <div className="min-h-screen bg-gray-50">
+        <Outlet />
+      </div>
+    </AuthGuard>
+  );
 }

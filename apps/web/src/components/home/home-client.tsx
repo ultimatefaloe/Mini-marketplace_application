@@ -18,9 +18,9 @@ import { Card, CardContent } from '@/components/ui/card'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import type { ICategoryTreeNode, IProductListItem } from '@/types'
-import { ProductCard } from '../../ui/product-card'
-import CategoriesCarousel from '../../ui/categories-carousel'
 import HeroCarousel, { type HeroType } from './hero-carousel'
+import CategoriesCarousel from '../ui/categories-carousel'
+import { ProductCard } from '../ui/product-card'
 
 
 // Hero Carousel Data

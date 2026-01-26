@@ -3,7 +3,7 @@ import { isApiError } from '@/types';
 class ApiClient {
   private baseURL: string;
 
-  constructor(baseURL: string = process.env.VITE_APP_BASE_URL || 'http://localhost:3000') {
+  constructor(baseURL: string = import.meta.env.VITE_API_URL) {
     this.baseURL = baseURL;
   }
 

@@ -1,8 +1,7 @@
-import { useState } from 'react'
-import { Link, useRouterState } from '@tanstack/react-router'
+import { useState, useEffect, useMemo } from 'react'
+import { Link, useRouterState, useNavigate } from '@tanstack/react-router'
 import {
   Menu,
-  X,
   ShoppingCart,
   Search,
   User,
@@ -12,7 +11,14 @@ import {
   Tag,
   Store,
   ChevronRight,
-  Star,
+  LogOut,
+  ShoppingBag,
+  Heart,
+  Settings,
+  CreditCard,
+  Shield,
+  Bell,
+  TrendingUp,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -31,37 +37,107 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuGroup,
 } from '@/components/ui/dropdown-menu'
 import { Separator } from '@/components/ui/separator'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useAuth } from '@/hooks'
+import { useCart, useLogout } from '@/api'
+import { Skeleton } from '@/components/ui/skeleton'
+import { formatCurrency } from '@/lib/utils'
 
 // Navigation links configuration
 const navLinks = [
   { href: '/', title: 'Home', icon: Home },
   { href: '/categories', title: 'Categories', icon: Tag },
   { href: '/products', title: 'Products', icon: Package },
-  { href: '/shop', title: 'Shop', icon: Store },
+  // { href: '/new-arrivals', title: 'New Arrivals', icon: Sparkles },
 ]
 
 const userLinks = [
-  { href: '/profile', title: 'My Profile', icon: User },
-  { href: '/orders', title: 'My Orders', icon: Package },
-  { href: '/settings', title: 'Settings', icon: Sparkles },
+  { href: '/account', title: 'My Profile', icon: User },
+  { href: '/account/orders', title: 'My Orders', icon: Package },
+  { href: '/account/wishlist', title: 'Wishlist', icon: Heart },
+  { href: '/account/settings', title: 'Settings', icon: Settings },
+]
+
+const adminLinks = [
+  { href: '/admin', title: 'Dashboard', icon: TrendingUp },
+  { href: '/admin/products', title: 'Products', icon: Package },
+  { href: '/admin/orders', title: 'Orders', icon: ShoppingBag },
+  { href: '/admin/analytics', title: 'Analytics', icon: CreditCard },
 ]
 
 export default function Header() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearchExpanded, setIsSearchExpanded] = useState(false)
-  const cartItems = 5
+  const [isScrolled, setIsScrolled] = useState(false)
   const router = useRouterState()
+  const navigate = useNavigate()
+
+  const { user, isAuthenticated, isLoading, isAdmin, isUser, logout } =
+    useAuth()
+  const { data: cartData, isLoading: isLoadingCart } = useCart()
+  const { mutate: logoutMutate, isPending: isLoggingOut } = useLogout()
+
+  const cartItems = cartData?.items?.length || 0
+  const cartTotal = useMemo(() => {
+    return cartData?.items?.reduce(
+      (total, item) => total + (item.priceSnapshot ?? 0),
+      0,
+    ) || 0
+  }, [cartData?.items])
+
+  // Handle scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   // Check active route
   const isActive = (href: string) => {
     return router.location.pathname === href
   }
 
-  const onSearchHandler = () => {
-    console.log(searchQuery)
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      navigate({ to: '/search', search: { q: searchQuery } })
+      setIsSearchExpanded(false)
+    }
+  }
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
+  }
+
+  const handleAdminDashboard = () => {
+    navigate({ to: '/admin' })
+  }
+
+  // User initials for avatar
+  const getUserInitials = () => {
+    if (!user?.fullName) return 'U'
+    return user.fullName
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
+  // User display name
+  const getUserDisplayName = () => {
+    if (!user?.fullName) return 'Welcome!'
+    return user.fullName.split(' ')[0]
   }
 
   return (
@@ -80,8 +156,9 @@ export default function Header() {
             variant="ghost"
             size="sm"
             className="hidden md:inline-flex ml-4 text-xs h-6 px-2 bg-white/20 hover:bg-white/30"
+            asChild
           >
-            Shop Now
+            <Link to="/products">Shop Now</Link>
           </Button>
         </div>
 
@@ -90,7 +167,13 @@ export default function Header() {
       </div>
 
       {/* Main Header */}
-      <header className="sticky top-0 z-50 bg-mmp-primary2 shadow-2xl">
+      <header
+        className={`sticky top-0 z-50 transition-all duration-300 ${
+          isScrolled
+            ? 'bg-mmp-primary2/95 backdrop-blur-md shadow-2xl'
+            : 'bg-mmp-primary2'
+        }`}
+      >
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16 md:h-20">
             {/* Logo & Mobile Menu */}
@@ -120,9 +203,6 @@ export default function Header() {
                         onClick={() => setIsSidebarOpen(false)}
                         className="flex items-center gap-2 group"
                       >
-                        {/* <div className="p-2 bg-gradient-to-br from-mmp-accent to-mmp-secondary rounded-lg group-hover:scale-105 transition-transform">
-                          <ShoppingBag className="h-6 w-6 text-white" />
-                        </div> */}
                         <div className="flex flex-col">
                           <span className="text-2xl font-bold text-mmp-neutral tracking-tight">
                             FashionKet
@@ -135,21 +215,89 @@ export default function Header() {
                     </SheetTitle>
                   </SheetHeader>
 
-                  {/* User Quick Actions */}
-                  <div className="p-6">
-                    <div className="flex items-center gap-3 p-4 bg-mmp-primary/10 rounded-xl mb-6">
-                      <div className="w-12 h-12 bg-gradient-to-br from-mmp-accent to-mmp-secondary rounded-full flex items-center justify-center ring-2 ring-white/20">
-                        <User className="h-6 w-6 text-white" />
+                  <div className="p-6 overflow-y-auto h-[calc(100vh-120px)]">
+                    {/* User Info Section */}
+                    {isAuthenticated ? (
+                      <div className="flex gap-2 items-center mb-6">
+                        <Link
+                          to="/account"
+                          onClick={() => setIsSidebarOpen(false)}
+                          className="flex items-center gap-3 p-4 bg-mmp-primary/10 rounded-xl flex-1"
+                        >
+                          <Avatar className="w-12 h-12 ring-2 ring-white/20">
+                            <AvatarImage src="" />
+                            <AvatarFallback className="bg-gradient-to-br from-mmp-accent to-mmp-secondary text-white">
+                              {getUserInitials()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <p className="font-semibold text-mmp-neutral">
+                              {getUserDisplayName()}
+                            </p>
+                            <p className="text-sm text-mmp-secondary">
+                              {user?.email}
+                            </p>
+                          </div>
+                        </Link>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={handleLogout}
+                          disabled={isLoggingOut}
+                          className="bg-red-600/20 hover:bg-red-600/30"
+                        >
+                          <LogOut className="h-5 w-5 text-red-400" />
+                        </Button>
                       </div>
-                      <div className="flex-1">
-                        <p className="font-semibold text-mmp-neutral">
-                          Welcome Back!
-                        </p>
-                        <p className="text-sm text-mmp-secondary">
-                          Access exclusive deals
-                        </p>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-3 mb-6">
+                        <Button
+                          variant="outline"
+                          className="border-mmp-primary/30 hover:bg-mmp-primary/10 h-11"
+                          asChild
+                          onClick={() => setIsSidebarOpen(false)}
+                        >
+                          <Link to="/login">Login</Link>
+                        </Button>
+                        <Button
+                          className="bg-gradient-to-r from-mmp-accent to-mmp-secondary hover:opacity-90 h-11"
+                          asChild
+                          onClick={() => setIsSidebarOpen(false)}
+                        >
+                          <Link to="/signup">Register</Link>
+                        </Button>
                       </div>
-                    </div>
+                    )}
+
+                    {/* Admin Section */}
+                    {isAdmin && (
+                      <>
+                        <div className="mb-4">
+                          <h3 className="text-xs font-semibold text-mmp-secondary/80 uppercase tracking-wider mb-2">
+                            Admin Panel
+                          </h3>
+                          <nav className="space-y-1">
+                            {adminLinks.map((link) => {
+                              const Icon = link.icon
+                              return (
+                                <Link
+                                  key={link.href}
+                                  to={link.href}
+                                  onClick={() => setIsSidebarOpen(false)}
+                                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-mmp-primary/10 transition-colors"
+                                >
+                                  <Icon className="h-5 w-5 text-mmp-secondary" />
+                                  <span className="text-mmp-neutral">
+                                    {link.title}
+                                  </span>
+                                </Link>
+                              )
+                            })}
+                          </nav>
+                        </div>
+                        <Separator className="my-4 bg-mmp-primary/30" />
+                      </>
+                    )}
 
                     {/* Navigation Links */}
                     <nav className="space-y-1">
@@ -199,34 +347,45 @@ export default function Header() {
                       })}
                     </nav>
 
-                    <Separator className="my-6 bg-mmp-primary/30" />
-
-                    {/* Quick Actions */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <Button
-                        variant="outline"
-                        className="border-mmp-primary/30 hover:bg-mmp-primary/10 h-11"
-                      >
-                        <User className="h-4 w-4 mr-2" />
-                        Account
-                      </Button>
-                      <Button className="bg-gradient-to-r from-mmp-accent to-mmp-secondary hover:opacity-90 h-11">
-                        <Star className="h-4 w-4 mr-2" />
-                        Deals
-                      </Button>
-                    </div>
+                    {/* User Links for authenticated users */}
+                    {isAuthenticated && (
+                      <>
+                        <Separator className="my-6 bg-mmp-primary/30" />
+                        <nav className="space-y-1">
+                          {userLinks.map((link) => {
+                            const Icon = link.icon
+                            const active = isActive(link.href)
+                            return (
+                              <Link
+                                key={link.href}
+                                to={link.href}
+                                onClick={() => setIsSidebarOpen(false)}
+                                className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                                  active
+                                    ? 'bg-mmp-primary/20 text-mmp-secondary'
+                                    : 'hover:bg-mmp-primary/10 text-mmp-neutral'
+                                }`}
+                              >
+                                <Icon className="h-5 w-5" />
+                                <span>{link.title}</span>
+                              </Link>
+                            )
+                          })}
+                        </nav>
+                      </>
+                    )}
                   </div>
                 </SheetContent>
               </Sheet>
 
               {/* Logo */}
               <Link to="/" className="flex items-center gap-3 group">
-                {/* <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-mmp-accent to-mmp-secondary rounded-xl blur group-hover:blur-lg transition-all duration-300 opacity-70" />
-                  <div className="relative p-2 bg-mmp-primary2 rounded-xl border border-mmp-primary/30">
-                    <ShoppingBag className="h-7 w-7 md:h-8 md:w-8 text-mmp-secondary" />
+                <div className="relative">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-mmp-accent to-mmp-secondary rounded-lg blur opacity-20 group-hover:opacity-30 transition duration-1000 group-hover:duration-200" />
+                  <div className="relative p-2 bg-mmp-primary2 rounded-lg">
+                    <ShoppingBag className="h-6 w-6 text-mmp-secondary" />
                   </div>
-                </div> */}
+                </div>
                 <div className="flex flex-col">
                   <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-mmp-neutral via-mmp-secondary to-mmp-accent bg-clip-text text-transparent">
                     FashionKet
@@ -273,49 +432,53 @@ export default function Header() {
             <div className="flex items-center gap-1 md:gap-3">
               {/* Search - Adaptive */}
               {isSearchExpanded ? (
-                <div className="absolute top-0 left-0 right-0 z-30 h-16 bg-mmp-primary2 px-4 flex items-center md:relative md:top-auto md:left-auto md:right-auto md:h-auto md:bg-transparent">
+                <div className="absolute top-0 left-0 right-0 z-30 h-16 bg-mmp-primary2/95 backdrop-blur-md px-4 flex items-center md:relative md:top-auto md:left-auto md:right-auto md:h-auto md:bg-transparent">
                   <div className="flex-1 relative max-w-2xl mx-auto">
-                    <Input
-                      type="search"
-                      placeholder="Discover premium products..."
-                      className="w-full pl-12 pr-20 h-12 bg-mmp-primary/20 border-mmp-primary/40 focus:border-mmp-secondary focus:ring-mmp-secondary/20 rounded-xl text-mmp-neutral placeholder:text-mmp-neutral/60"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      autoFocus
-                    />
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-mmp-secondary" />
-                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-mmp-neutral/60 hover:text-mmp-neutral"
-                        onClick={() => setIsSearchExpanded(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        onClick={onSearchHandler}
-                        className="h-8 bg-gradient-to-r from-mmp-accent to-mmp-secondary hover:opacity-90"
-                        size="sm"
-                      >
-                        Search
-                      </Button>
-                    </div>
+                    <form onSubmit={handleSearch}>
+                      <Input
+                        type="search"
+                        placeholder="Discover premium products..."
+                        className="w-full pl-12 pr-20 h-12 bg-mmp-primary/20 border-mmp-primary/40 focus:border-mmp-secondary focus:ring-mmp-secondary/20 rounded-xl text-mmp-neutral placeholder:text-mmp-neutral/60"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        autoFocus
+                      />
+                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-mmp-secondary" />
+                      <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-mmp-neutral/60 hover:text-mmp-neutral"
+                          onClick={() => setIsSearchExpanded(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="submit"
+                          className="h-8 bg-gradient-to-r from-mmp-accent to-mmp-secondary hover:opacity-90"
+                          size="sm"
+                        >
+                          Search
+                        </Button>
+                      </div>
+                    </form>
                   </div>
                 </div>
               ) : (
                 <>
                   {/* Desktop Search */}
                   <div className="hidden md:flex items-center relative">
-                    <Input
-                      type="search"
-                      placeholder="Search..."
-                      className="w-[180px] lg:w-[220px] pl-10 pr-4 h-10 bg-mmp-primary/20 border-mmp-primary/40 focus:border-mmp-secondary focus:ring-mmp-secondary/20 rounded-xl text-mmp-neutral placeholder:text-mmp-neutral/60"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      onFocus={() => setIsSearchExpanded(true)}
-                    />
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-mmp-secondary" />
+                    <form onSubmit={handleSearch} className="relative">
+                      <Input
+                        type="search"
+                        placeholder="Search..."
+                        className="w-[180px] lg:w-[220px] pl-10 pr-4 h-10 bg-mmp-primary/20 border-mmp-primary/40 focus:border-mmp-secondary focus:ring-mmp-secondary/20 rounded-xl text-mmp-neutral placeholder:text-mmp-neutral/60"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-mmp-secondary" />
+                    </form>
                   </div>
 
                   {/* Mobile Search Button */}
@@ -324,128 +487,264 @@ export default function Header() {
                     size="icon"
                     className="md:hidden hover:bg-mmp-primary/20"
                     aria-label="Search"
-                    onClick={() => {
-                      setIsSearchExpanded(true);
-                      onSearchHandler
-                    }}
+                    onClick={() => setIsSearchExpanded(true)}
                   >
                     <Search className="h-5 w-5 text-mmp-neutral" />
                   </Button>
                 </>
               )}
 
-              {/* User Account */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="hover:bg-mmp-primary/20 relative group"
-                    aria-label="User account"
-                  >
-                    <div className="p-1.5 rounded-lg bg-gradient-to-br from-mmp-primary/30 to-mmp-accent/20 group-hover:from-mmp-accent/30 group-hover:to-mmp-secondary/20 transition-all">
-                      <User className="h-5 w-5 text-mmp-neutral" />
-                    </div>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  className="w-56 bg-mmp-primary2 border-mmp-primary/30"
-                >
-                  <DropdownMenuLabel className="text-mmp-neutral">
-                    <div className="flex items-center gap-2">
-                      <div className="p-2 bg-gradient-to-br from-mmp-accent to-mmp-secondary rounded-lg">
-                        <User className="h-4 w-4 text-white" />
-                      </div>
-                      <span>My Account</span>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-mmp-primary/30" />
-                  {userLinks.map((link) => {
-                    const Icon = link.icon
-                    return (
-                      <DropdownMenuItem
-                        key={link.href}
-                        asChild
-                        className="text-mmp-neutral hover:bg-mmp-primary/20 focus:bg-mmp-primary/20 cursor-pointer"
-                      >
-                        <Link
-                          to={link.href}
-                          className="flex items-center gap-2"
-                        >
-                          <Icon className="h-4 w-4 text-mmp-secondary" />
-                          <span>{link.title}</span>
-                        </Link>
-                      </DropdownMenuItem>
-                    )
-                  })}
-                </DropdownMenuContent>
-              </DropdownMenu>
-
               {/* Shopping Cart */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="hover:bg-mmp-primary/20 relative group"
-                    aria-label="Shopping cart"
+              {isUser && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="hover:bg-mmp-primary/20 relative group"
+                      aria-label="Shopping cart"
+                      disabled={isLoadingCart}
+                    >
+                      <div className="p-1.5 rounded-lg bg-gradient-to-br from-mmp-primary/30 to-mmp-accent/20 group-hover:from-mmp-accent/30 group-hover:to-mmp-secondary/20 transition-all">
+                        {isLoadingCart ? (
+                          <div className="h-5 w-5 animate-spin rounded-full border-2 border-mmp-neutral border-t-transparent" />
+                        ) : (
+                          <ShoppingCart className="h-5 w-5 text-mmp-neutral" />
+                        )}
+                      </div>
+                      {cartItems > 0 && (
+                        <Badge className="absolute -top-1 -right-1 bg-gradient-to-r from-mmp-accent to-mmp-secondary text-white text-xs h-5 w-5 p-0 flex items-center justify-center border-2 border-mmp-primary2">
+                          {cartItems > 99 ? '99+' : cartItems}
+                        </Badge>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-80 bg-mmp-primary2 border-mmp-primary/30"
                   >
-                    <div className="p-1.5 rounded-lg bg-gradient-to-br from-mmp-primary/30 to-mmp-accent/20 group-hover:from-mmp-accent/30 group-hover:to-mmp-secondary/20 transition-all">
-                      <ShoppingCart className="h-5 w-5 text-mmp-neutral" />
-                    </div>
-                    {cartItems > 0 && (
-                      <Badge className="absolute -top-1 -right-1 bg-gradient-to-r from-mmp-accent to-mmp-secondary text-white text-xs h-5 w-5 p-0 flex items-center justify-center border-2 border-mmp-primary2">
-                        {cartItems}
-                      </Badge>
-                    )}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  className="w-80 bg-mmp-primary2 border-mmp-primary/30"
-                >
-                  <DropdownMenuLabel className="text-mmp-neutral">
-                    <div className="flex items-center justify-between">
-                      <span>Your Cart ({cartItems} items)</span>
-                      <span className="text-sm text-mmp-secondary font-semibold">
-                        299.97
-                      </span>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-mmp-primary/30" />
-                  <div className="p-3">
-                    <div className="space-y-2 max-h-60 overflow-y-auto">
-                      {[1, 2, 3].map((item) => (
-                        <div
-                          key={item}
-                          className="flex items-center gap-3 p-3 rounded-lg hover:bg-mmp-primary/10 transition-colors"
-                        >
-                          <div className="w-12 h-12 bg-gradient-to-br from-mmp-primary/20 to-mmp-accent/10 rounded-lg flex items-center justify-center">
-                            <Package className="h-6 w-6 text-mmp-secondary" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-mmp-neutral">
-                              Premium Product {item}
-                            </p>
-                            <p className="text-xs text-mmp-neutral/60">
-                              Qty: 1 × #99.99
-                            </p>
-                          </div>
-                          <span className="font-semibold text-mmp-secondary">
-                            $99.99
-                          </span>
+                    <DropdownMenuLabel className="text-mmp-neutral">
+                      <div className="flex items-center justify-between">
+                        <span>Your Cart ({cartItems} items)</span>
+                        <span className="text-sm text-mmp-secondary font-semibold">
+                          {formatCurrency(cartTotal)}
+                        </span>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator className="bg-mmp-primary/30" />
+                    <div className="p-3">
+                      {cartItems === 0 ? (
+                        <div className="text-center py-8">
+                          <ShoppingCart className="h-12 w-12 text-mmp-primary/30 mx-auto mb-3" />
+                          <p className="text-mmp-neutral/60">
+                            Your cart is empty
+                          </p>
+                          <Button
+                            className="mt-4 bg-gradient-to-r from-mmp-accent to-mmp-secondary hover:opacity-90"
+                            asChild
+                          >
+                            <Link to="/products">Start Shopping</Link>
+                          </Button>
                         </div>
-                      ))}
+                      ) : (
+                        <>
+                          <div className="space-y-2 max-h-60 overflow-y-auto">
+                            {cartData?.items?.slice(0, 3).map((item: any) => (
+                              <div
+                                key={item.id}
+                                className="flex items-center gap-3 p-3 rounded-lg hover:bg-mmp-primary/10 transition-colors"
+                              >
+                                <div className="w-12 h-12 bg-gradient-to-br from-mmp-primary/20 to-mmp-accent/10 rounded-lg flex items-center justify-center">
+                                  <Package className="h-6 w-6 text-mmp-secondary" />
+                                </div>
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium text-mmp-neutral truncate">
+                                    {item.product?.name || `Product ${item.id}`}
+                                  </p>
+                                  <p className="text-xs text-mmp-neutral/60">
+                                    Qty: {item.quantity} × $
+                                    {item.price?.toFixed(2)}
+                                  </p>
+                                </div>
+                                <span className="font-semibold text-mmp-secondary">
+                                  ${(item.quantity * item.price).toFixed(2)}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                          {cartItems > 3 && (
+                            <div className="text-center mt-2">
+                              <p className="text-sm text-mmp-neutral/60">
+                                +{cartItems - 3} more items
+                              </p>
+                            </div>
+                          )}
+                          <div className="mt-4 pt-3 border-t border-mmp-primary/30">
+                            <Button
+                              className="w-full bg-gradient-to-r from-mmp-accent to-mmp-secondary hover:opacity-90 h-11"
+                              asChild
+                            >
+                              <Link to="/cart">View Cart & Checkout</Link>
+                            </Button>
+                          </div>
+                        </>
+                      )}
                     </div>
-                    <div className="mt-4 pt-3 border-t border-mmp-primary/30">
-                      <Button className="w-full bg-gradient-to-r from-mmp-accent to-mmp-secondary hover:opacity-90 h-11">
-                        Proceed to Checkout
-                      </Button>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+
+              {/* Notifications (for authenticated users) */}
+              {isAuthenticated && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="hover:bg-mmp-primary/20 relative group"
+                      aria-label="Notifications"
+                    >
+                      <div className="p-1.5 rounded-lg bg-gradient-to-br from-mmp-primary/30 to-mmp-accent/20 group-hover:from-mmp-accent/30 group-hover:to-mmp-secondary/20 transition-all">
+                        <Bell className="h-5 w-5 text-mmp-neutral" />
+                      </div>
+                      <Badge className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs h-5 w-5 p-0 flex items-center justify-center border-2 border-mmp-primary2">
+                        3
+                      </Badge>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-64 bg-mmp-primary2 border-mmp-primary/30"
+                  >
+                    <DropdownMenuLabel className="text-mmp-neutral">
+                      Notifications
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator className="bg-mmp-primary/30" />
+                    <div className="p-2">
+                      <div className="space-y-2">
+                        <div className="p-3 rounded-lg bg-mmp-primary/10">
+                          <p className="text-sm font-medium text-mmp-neutral">
+                            Order Shipped
+                          </p>
+                          <p className="text-xs text-mmp-neutral/60">
+                            Your order #12345 has been shipped
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+
+              {/* User Account / Auth Buttons */}
+              {!isAuthenticated ? (
+                <div className="hidden lg:flex gap-3 ml-4">
+                  <Button
+                    variant="outline"
+                    className="px-5 border-mmp-primary/30 hover:bg-mmp-primary/10"
+                    asChild
+                  >
+                    <Link to="/login">Login</Link>
+                  </Button>
+                  <Button
+                    className="px-5 bg-gradient-to-r from-mmp-accent to-mmp-secondary hover:opacity-90"
+                    asChild
+                  >
+                    <Link to="/signup">Register</Link>
+                  </Button>
+                </div>
+              ) : (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="hover:bg-mmp-primary/20 px-3 rounded-full"
+                      aria-label="User account"
+                    >
+                      <Avatar className="h-8 w-8 mr-2">
+                        <AvatarImage src="" />
+                        <AvatarFallback className="bg-gradient-to-br from-mmp-accent to-mmp-secondary text-white">
+                          {getUserInitials()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="hidden lg:inline text-mmp-neutral font-medium">
+                        {getUserDisplayName()}
+                      </span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-56 bg-mmp-primary2 border-mmp-primary/30"
+                  >
+                    <DropdownMenuLabel className="text-mmp-neutral">
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src="" />
+                          <AvatarFallback className="bg-gradient-to-br from-mmp-accent to-mmp-secondary text-white">
+                            {getUserInitials()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-semibold">{user?.fullName}</p>
+                          <p className="text-xs text-mmp-neutral/60">
+                            {user?.email}
+                          </p>
+                        </div>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator className="bg-mmp-primary/30" />
+
+                    {/* Admin Quick Access */}
+                    {isAdmin && (
+                      <>
+                        <DropdownMenuGroup>
+                          <DropdownMenuItem
+                            className="text-mmp-neutral hover:bg-mmp-primary/20 focus:bg-mmp-primary/20 cursor-pointer"
+                            onClick={handleAdminDashboard}
+                          >
+                            <Shield className="h-4 w-4 text-mmp-secondary mr-2" />
+                            <span>Admin Dashboard</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuGroup>
+                        <DropdownMenuSeparator className="bg-mmp-primary/30" />
+                      </>
+                    )}
+
+                    {/* User Links */}
+                    <DropdownMenuGroup>
+                      {userLinks.map((link) => {
+                        const Icon = link.icon
+                        return (
+                          <DropdownMenuItem
+                            key={link.href}
+                            asChild
+                            className="text-mmp-neutral hover:bg-mmp-primary/20 focus:bg-mmp-primary/20 cursor-pointer"
+                          >
+                            <Link
+                              to={link.href}
+                              className="flex items-center gap-2"
+                            >
+                              <Icon className="h-4 w-4 text-mmp-secondary" />
+                              <span>{link.title}</span>
+                            </Link>
+                          </DropdownMenuItem>
+                        )
+                      })}
+                    </DropdownMenuGroup>
+
+                    <DropdownMenuSeparator className="bg-mmp-primary/30" />
+
+                    <DropdownMenuItem
+                      className="text-red-400 hover:bg-red-600/10 focus:bg-red-600/10 cursor-pointer"
+                      onClick={handleLogout}
+                      disabled={isLoggingOut}
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      <span>{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
           </div>
         </div>

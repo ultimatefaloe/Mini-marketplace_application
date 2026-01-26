@@ -7,9 +7,7 @@ export const Route = createFileRoute('/(root)/_rootLayout')({
 })
 
 function RouteComponent() {
-  const handleSearch = (query: string) => {
-    console.log('Searching for:', query)
-  }
+
   return (
     <div>
       <Header />

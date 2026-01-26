@@ -9,6 +9,7 @@ import type {
   ITokenValidationResponse,
   IPasswordResetRequest,
   IPasswordResetPayload,
+  ICreateAdminPayload,
 } from '@/types';
 
 // Queries
@@ -40,6 +41,30 @@ export const useUserLogin = () => {
   return useMutation({
     mutationFn: (data: ILoginCredentials) =>
       apiClient.post<IUserAuthResponse>('/auth/user/signin', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.validate() });
+    },
+  });
+};
+
+export const useUserGoogleAuth = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () =>
+      apiClient.get<IUserAuthResponse>('/auth/user/google'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.validate() });
+    },
+  });
+};
+
+export const useAdminSignup = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: ICreateAdminPayload) =>
+      apiClient.post<IAdminAuthResponse>('/auth/admin/signup', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.validate() });
     },

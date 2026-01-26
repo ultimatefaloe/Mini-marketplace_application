@@ -15,7 +15,7 @@ export interface IAdmin extends IBaseDocument, ITimestamps {
   email: string;
   phone: string;
   role: UserRole;
-  permissions: IAdminPermissions;
+  permissions?: IAdminPermissions;
   isActive: boolean;
   googleId?: string | null;
 }
