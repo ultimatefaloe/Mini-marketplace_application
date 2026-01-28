@@ -1,19 +1,20 @@
 
-import { Controller, Post, Body, Res, UseGuards, Get, Req, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, Res, UseGuards, Get, Req, HttpCode, HttpStatus, Logger } from '@nestjs/common';
 import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
-import { GoogleAuthGuard } from './guards';
+import { GoogleAuthGuard, JwtRefreshGuard } from './guards';
 import { SignUpDto, AdminSignUpDto, SignInDto, RequestResetDto, ResetPasswordDto } from './dto';
 import { ConfigService } from '@nestjs/config';
 import type { JwtPayload } from './interfaces/jwt-payload.interface';
 import { AppRolesEnum } from 'src/type/role';
-import { Public, Roles, CurrentUser } from './decorators';
+import { Public, CurrentUser } from './decorators';
+import { RefreshUser } from './decorators/refresh.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private authService: AuthService,
-    private config: ConfigService
+    private config: ConfigService,
   ) { }
 
   // ========== USER ROUTES ==========
@@ -118,13 +119,27 @@ export class AuthController {
     return {
       valid: true,
       user: {
-        auth_id: user.auth_id,
-        fullName: user.fullName,
-        phone: user.phone || '',
-        email: user.email,
-        role: user.role,
-        isActive: user.isActive
+        auth_id: user?.auth_id,
+        fullName: user?.fullName,
+        phone: user?.phone || '',
+        email: user?.email,
+        role: user?.role,
+        isActive: user?.isActive
       },
+    };
+  }
+
+  @UseGuards(JwtRefreshGuard)
+  @Get('refresh')
+  @HttpCode(HttpStatus.OK)
+  refreshToken(
+    @RefreshUser() user: JwtPayload,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const tokens = this.authService.generateAccessTokens(user);
+    this.setAuthCookies(res, tokens);
+    return {
+      message: 'Access token refreshed successfully',
     };
   }
 
@@ -137,8 +152,10 @@ export class AuthController {
   // getAdminProfile(@CurrentUser() user: JwtPayload) { }
 
   // ========== HELPERS ==========
-  private setAuthCookies(res: Response, tokens: { accessToken: string; refreshToken: string }) {
+  private setAuthCookies(res: Response, tokens: { accessToken: string; refreshToken?: string }) {
     res.cookie('access_token', tokens.accessToken, this.authService.getCookieOptions(900000)); // 15 min
-    res.cookie('refresh_token', tokens.refreshToken, this.authService.getCookieOptions(604800000)); // 7 days
+    if (tokens.refreshToken) {
+      res.cookie('refresh_token', tokens.refreshToken, this.authService.getCookieOptions(604800000)); // 7 days
+    }
   }
 }

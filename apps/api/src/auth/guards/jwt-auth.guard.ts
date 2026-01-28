@@ -1,11 +1,16 @@
 import { Injectable, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Reflector } from '@nestjs/core';
-import { TokenBlacklistService } from '../tokenBlackList.service';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  constructor(private reflector: Reflector, private tokenBlacklistService: TokenBlacklistService) {
+  constructor
+    (
+      private reflector: Reflector,
+      private readonly config: ConfigService,
+      private readonly jwt: JwtService) {
     super();
   }
 
@@ -31,13 +36,14 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       throw new UnauthorizedException('Access token not found');
     }
 
-    const isBlacklisted =
-      await this.tokenBlacklistService.isTokenBlacklisted(token);
 
-    if (isBlacklisted) {
-      throw new UnauthorizedException('Token has been revoked');
+    const secret = this.config.getOrThrow<string>('JWT_REFRESH_SECRET')
+
+    const validate = await this.jwt.verify(token, { secret })
+
+    if (!validate) {
+      throw new UnauthorizedException('Refresh token has been revoked');
     }
-
     req.token = token;
 
     return super.canActivate(context) as Promise<boolean>;

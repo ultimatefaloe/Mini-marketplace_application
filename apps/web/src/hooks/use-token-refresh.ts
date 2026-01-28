@@ -13,7 +13,7 @@ export const useTokenRefresh = () => {
     const refreshToken = async () => {
       try {
         setLoading(true);
-        await apiClient.post('/auth/refresh');
+        await apiClient.get('/auth/refresh');
         setLoading(false);
       } catch (error) {
         console.error('Token refresh failed:', error);

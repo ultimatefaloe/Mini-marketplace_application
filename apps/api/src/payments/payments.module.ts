@@ -6,10 +6,11 @@ import { Payment, PaymentSchema } from 'src/models/payment.schema';
 import { Order, OrderSchema } from 'src/models/order.schema';
 import { PaymentController } from './payments.controller';
 import { PaymentService } from './payments.service';
-import { TokenBlacklistService } from 'src/auth/tokenBlackList.service';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
+    AuthModule,
     ConfigModule,
     HttpModule.register({
       timeout: 10000,
@@ -21,7 +22,7 @@ import { TokenBlacklistService } from 'src/auth/tokenBlackList.service';
     ]),
   ],
   controllers: [PaymentController],
-  providers: [PaymentService, TokenBlacklistService],
+  providers: [PaymentService],
   exports: [PaymentService],
 })
 export class PaymentModule {}

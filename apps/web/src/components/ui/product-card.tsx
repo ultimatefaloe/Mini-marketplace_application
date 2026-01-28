@@ -13,19 +13,18 @@ import {
 } from 'lucide-react'
 import type { IProductListItem } from '@/types'
 import { Link } from '@tanstack/react-router'
+import { AddToCartButton } from './add-to-cart-button'
 
 // Simplified interface with only relevant data
 interface ProductCardProps {
   product: IProductListItem
   className?: string
-  onAddToCart?: (product: IProductListItem) => void
   size?: 'sm' | 'md' | 'lg'
   variant?: 'default' | 'compact' | 'featured'
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
-  onAddToCart,
   size = 'md',
   variant = 'default',
   className,
@@ -93,14 +92,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const config = sizeConfig[size]
   const variantStyle = variantConfig[variant]
 
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (!isOutOfStock && onAddToCart) {
-      onAddToCart(product)
-    }
-  }
-
   const handleFavorite = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -128,7 +119,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     <Link
       to="/products/$slug"
       params={{ slug: product.slug }}
-      className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-mmp-secondary focus-visible:ring-offset-2 rounded-xl"
+      className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-mmp-secondary focus-visible:ring-offset-2 rounded-xl group"
     >
       <Card
         className={cn(
@@ -158,22 +149,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             </Badge>
           )}
 
-          {/* Quick Actions Overlay */}
-          <div className="absolute inset-0 z-10 bg-gradient-to-t from-mmp-primary2/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className="absolute bottom-4 left-0 right-0 px-4">
-              <div className="flex flex-col gap-2">
-                {!isOutOfStock && (
-                  <Button
-                    size="sm"
-                    onClick={handleAddToCart}
-                    className="bg-white text-mmp-primary2 hover:bg-mmp-neutral hover:text-mmp-primary2 shadow-md cursor-pointer"
-                  >
-                    <ShoppingBag className="h-4 w-4 mr-2" />
-                    Add to Cart
-                  </Button>
-                )}
-              </div>
-            </div>
+          {/* Cart button */}
+          <div className="absolute bottom-4 left-0 right-0 px-4 z-50">
+            <AddToCartButton
+              className="w-full bg-white text-mmp-primary2 hover:bg-mmp-neutral hover:text-mmp-primary2 shadow-md"
+              size="default"
+              product={product}
+              aria-label={'Add to cart'}
+            />
           </div>
 
           {/* Favorite Button */}
@@ -310,14 +293,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
           {/* Add to Cart Button (Mobile/Compact) */}
           {!config.quickActions && !isOutOfStock && (
-            <Button
-              onClick={handleAddToCart}
-              className="w-full mt-3 bg-gradient-to-r from-mmp-accent to-mmp-secondary hover:opacity-90 text-white"
-              size="sm"
-            >
-              <ShoppingBag className="h-4 w-4 mr-2" />
-              Add to Cart
-            </Button>
+            <AddToCartButton
+              className="w-full bg-white text-mmp-primary2 hover:bg-mmp-neutral hover:text-mmp-primary2 shadow-md cursor-pointer z-50"
+              product={product}
+            />
           )}
         </CardContent>
       </Card>
@@ -331,7 +310,6 @@ interface ProductGridProps {
   size?: ProductCardProps['size']
   variant?: ProductCardProps['variant']
   className?: string
-  onAddToCart?: ProductCardProps['onAddToCart']
 }
 
 export const ProductGrid: React.FC<ProductGridProps> = ({
@@ -339,7 +317,6 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   size = 'md',
   variant = 'default',
   className,
-  onAddToCart,
 }) => {
   const gridCols = {
     sm: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5',
@@ -355,7 +332,6 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
           product={product}
           size={size}
           variant={variant}
-          onAddToCart={onAddToCart}
         />
       ))}
     </div>

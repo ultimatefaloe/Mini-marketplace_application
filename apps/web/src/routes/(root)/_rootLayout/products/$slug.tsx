@@ -10,7 +10,6 @@ import {
   getCategoryById,
 } from '@/data/product'
 import {
-  ShoppingBag,
   Heart,
   Share2,
   Star,
@@ -22,6 +21,7 @@ import {
   Check,
   Eye,
 } from 'lucide-react'
+import { AddToCartButton } from '@/components/ui/add-to-cart-button'
 
 export const Route = createFileRoute('/(root)/_rootLayout/products/$slug')({
   component: ProductDetailPage,
@@ -63,19 +63,6 @@ function ProductDetailPage() {
   const sizes = ['XS', 'S', 'M', 'L', 'XL']
   const colors = ['Black', 'White', 'Navy', 'Gray', 'Beige']
 
-  const handleAddToCart = () => {
-    if (isOutOfStock) return
-
-    // TODO: Implement add to cart logic
-    console.log('Adding to cart:', {
-      product: product.name,
-      quantity,
-      size: selectedSize,
-      color: selectedColor,
-      price: discountedPrice,
-    })
-  }
-
   const handleBuyNow = () => {
     if (isOutOfStock) return
 
@@ -103,11 +90,7 @@ function ProductDetailPage() {
               Home
             </Link>
             <span className="text-gray-300">/</span>
-            <Link
-              to='/products'
-            >
-              Products
-            </Link>
+            <Link to="/products">Products</Link>
 
             {category && (
               <>
@@ -370,15 +353,13 @@ function ProductDetailPage() {
             {/* Action Buttons */}
             <div className="mb-8 space-y-3">
               <div className="flex flex-col sm:flex-row gap-3">
-                <Button
+                <AddToCartButton
+                  className="flex-1 bg-mmp-primary2 hover:bg-mmp-primary2"
+                  product={product}
                   size="lg"
-                  className="flex-1 bg-mmp-primary hover:bg-mmp-primary2"
-                  disabled={isOutOfStock}
-                  onClick={handleAddToCart}
-                >
-                  <ShoppingBag className="mr-2 h-5 w-5" />
-                  {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
-                </Button>
+                  aria-label={'Add to cart'}
+                />
+
                 <Button
                   size="lg"
                   variant="outline"

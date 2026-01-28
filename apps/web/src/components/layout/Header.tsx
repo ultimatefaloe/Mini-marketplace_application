@@ -1,8 +1,7 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useRouterState, useNavigate } from '@tanstack/react-router'
 import {
   Menu,
-  ShoppingCart,
   Search,
   User,
   Sparkles,
@@ -41,8 +40,8 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAuth } from '@/hooks'
-import { useCart, useLogout } from '@/api'
-import { formatCurrency } from '@/lib/utils'
+import { CartIcon } from '../ui/cart-icon'
+import { useLogout } from '@/api'
 
 // Navigation links configuration
 const navLinks = [
@@ -54,9 +53,9 @@ const navLinks = [
 
 const userLinks = [
   { href: '/account', title: 'My Profile', icon: User },
-  { href: '/account/orders', title: 'My Orders', icon: Package },
-  { href: '/account/wishlist', title: 'Wishlist', icon: Heart },
-  { href: '/account/settings', title: 'Settings', icon: Settings },
+  { href: '/orders', title: 'My Orders', icon: Package },
+  { href: '/wishlist', title: 'Wishlist', icon: Heart },
+  { href: '/settings', title: 'Settings', icon: Settings },
 ]
 
 const adminLinks = [
@@ -74,19 +73,9 @@ export default function Header() {
   const router = useRouterState()
   const navigate = useNavigate()
 
-  const { user, isAuthenticated, isAdmin, isUser, logout } =
-    useAuth()
-  const { data: cartData, isLoading: isLoadingCart } = useCart()
+  const { user, isAuthenticated, isAdmin, logout } = useAuth()
   const { isPending: isLoggingOut } = useLogout()
-
-  const cartItems = cartData?.items?.length || 0
-  const cartTotal = useMemo(() => {
-    return cartData?.items?.reduce(
-      (total, item) => total + (item.priceSnapshot ?? 0),
-      0,
-    ) || 0
-  }, [cartData?.items])
-
+  
   // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
@@ -493,104 +482,7 @@ export default function Header() {
               )}
 
               {/* Shopping Cart */}
-              {isUser && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="hover:bg-mmp-primary/20 relative group"
-                      aria-label="Shopping cart"
-                      disabled={isLoadingCart}
-                    >
-                      <div className="p-1.5 rounded-lg bg-gradient-to-br from-mmp-primary/30 to-mmp-accent/20 group-hover:from-mmp-accent/30 group-hover:to-mmp-secondary/20 transition-all">
-                        {isLoadingCart ? (
-                          <div className="h-5 w-5 animate-spin rounded-full border-2 border-mmp-neutral border-t-transparent" />
-                        ) : (
-                          <ShoppingCart className="h-5 w-5 text-mmp-neutral" />
-                        )}
-                      </div>
-                      {cartItems > 0 && (
-                        <Badge className="absolute -top-1 -right-1 bg-gradient-to-r from-mmp-accent to-mmp-secondary text-white text-xs h-5 w-5 p-0 flex items-center justify-center border-2 border-mmp-primary2">
-                          {cartItems > 99 ? '99+' : cartItems}
-                        </Badge>
-                      )}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="end"
-                    className="w-80 bg-mmp-primary2 border-mmp-primary/30"
-                  >
-                    <DropdownMenuLabel className="text-mmp-neutral">
-                      <div className="flex items-center justify-between">
-                        <span>Your Cart ({cartItems} items)</span>
-                        <span className="text-sm text-mmp-secondary font-semibold">
-                          {formatCurrency(cartTotal)}
-                        </span>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator className="bg-mmp-primary/30" />
-                    <div className="p-3">
-                      {cartItems === 0 ? (
-                        <div className="text-center py-8">
-                          <ShoppingCart className="h-12 w-12 text-mmp-primary/30 mx-auto mb-3" />
-                          <p className="text-mmp-neutral/60">
-                            Your cart is empty
-                          </p>
-                          <Button
-                            className="mt-4 bg-gradient-to-r from-mmp-accent to-mmp-secondary hover:opacity-90"
-                            asChild
-                          >
-                            <Link to="/products">Start Shopping</Link>
-                          </Button>
-                        </div>
-                      ) : (
-                        <>
-                          <div className="space-y-2 max-h-60 overflow-y-auto">
-                            {cartData?.items?.slice(0, 3).map((item: any) => (
-                              <div
-                                key={item.id}
-                                className="flex items-center gap-3 p-3 rounded-lg hover:bg-mmp-primary/10 transition-colors"
-                              >
-                                <div className="w-12 h-12 bg-gradient-to-br from-mmp-primary/20 to-mmp-accent/10 rounded-lg flex items-center justify-center">
-                                  <Package className="h-6 w-6 text-mmp-secondary" />
-                                </div>
-                                <div className="flex-1">
-                                  <p className="text-sm font-medium text-mmp-neutral truncate">
-                                    {item.product?.name || `Product ${item.id}`}
-                                  </p>
-                                  <p className="text-xs text-mmp-neutral/60">
-                                    Qty: {item.quantity} × $
-                                    {item.price?.toFixed(2)}
-                                  </p>
-                                </div>
-                                <span className="font-semibold text-mmp-secondary">
-                                  ${(item.quantity * item.price).toFixed(2)}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                          {cartItems > 3 && (
-                            <div className="text-center mt-2">
-                              <p className="text-sm text-mmp-neutral/60">
-                                +{cartItems - 3} more items
-                              </p>
-                            </div>
-                          )}
-                          <div className="mt-4 pt-3 border-t border-mmp-primary/30">
-                            <Button
-                              className="w-full bg-gradient-to-r from-mmp-accent to-mmp-secondary hover:opacity-90 h-11"
-                              asChild
-                            >
-                              <Link to="/cart">View Cart & Checkout</Link>
-                            </Button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
+              <CartIcon showCount={true} />
 
               {/* Notifications (for authenticated users) */}
               {isAuthenticated && (

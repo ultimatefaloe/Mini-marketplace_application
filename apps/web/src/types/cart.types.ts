@@ -1,19 +1,22 @@
-import type { IBaseDocument, ITimestamps, ObjectId } from "./base.types";
-import type { IProduct } from "./product.types";
+import type { ITimestamps, ObjectId } from "./base.types";
+import type { IProduct, IVariantOptions } from "./product.types";
 
 export interface ICartItem {
   productId: ObjectId;
   nameSnapshot: string;
   priceSnapshot: number;
+  productImage?: string;
   quantity: number;
+  variantOptions?: IVariantOptions
 }
 
 /**
  * Cart base interface
  */
-export interface ICart extends IBaseDocument, ITimestamps {
-  userId: ObjectId;
+export interface ICart extends ITimestamps {
+  userId?: ObjectId;
   items: ICartItem[];
+  updatedAt: string
 }
 
 /**

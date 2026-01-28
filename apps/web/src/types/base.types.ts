@@ -4,8 +4,8 @@ export type ObjectId = string;
  * Timestamps interface for all documents
  */
 export interface ITimestamps {
-  createdAt: Date | string;
-  updatedAt: Date | string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 }
 
 /**

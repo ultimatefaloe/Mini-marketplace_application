@@ -19,12 +19,12 @@ import { Card, CardContent } from '@/components/ui/card'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import type { IProductListItem } from '@/types'
-import { 
-  sampleProducts, 
-  getAllBrands, 
+import {
+  sampleProducts,
+  getAllBrands,
   getAllTags,
-  categories
-} from '@/data/product';
+  categories,
+} from '@/data/product'
 import type { HeroType } from '@/components/home'
 import HeroCarousel from '@/components/home/hero-carousel'
 import CategoriesCarousel from '@/components/ui/categories-carousel'
@@ -80,22 +80,17 @@ const iconMap: Record<string, any> = {
 
 export const Route = createFileRoute('/(root)/_rootLayout/')({
   component: HomeClient,
- loader: () => {
-     const brands = getAllBrands();
-     const tags = getAllTags();
-     const maxPrice = Math.max(...sampleProducts.map(p => p.price), 0);
-     
-     return { brands, tags, maxPrice };
-   },
+  loader: () => {
+    const brands = getAllBrands()
+    const tags = getAllTags()
+    const maxPrice = Math.max(...sampleProducts.map((p) => p.price), 0)
+
+    return { brands, tags, maxPrice }
+  },
 })
 
 export default function HomeClient() {
   const scrollRefs = useRef<Record<string, HTMLDivElement | null>>({})
-
-  const handleAddToCart = (product: IProductListItem) => {
-    console.log('Add to cart:', product)
-    // Implement cart logic here
-  }
 
   const scrollLeft = (categoryId: string) => {
     const scrollContainer = scrollRefs.current[categoryId]
@@ -201,7 +196,6 @@ export default function HomeClient() {
                           <div key={product._id} className="flex-none">
                             <ProductCard
                               product={product}
-                              onAddToCart={handleAddToCart}
                             />
                           </div>
                         ))}
@@ -215,7 +209,6 @@ export default function HomeClient() {
                           <div key={product._id} className="flex-none">
                             <ProductCard
                               product={product}
-                              onAddToCart={handleAddToCart}
                             />
                           </div>
                         ))}

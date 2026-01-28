@@ -40,10 +40,6 @@ import { PaymentModule } from './payments/payments.module';
   providers: [
     {
       provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
-    {
-      provide: APP_GUARD,
       useClass: RolesGuard,
     },
   ],

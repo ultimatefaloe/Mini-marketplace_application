@@ -190,6 +190,7 @@ export class AuthService {
   }
 
 
+
   private parseUserToJwtPayload(
     user: any,
     role: AppRolesEnum
@@ -211,22 +212,35 @@ export class AuthService {
 
 
   // ========== HELPERS ==========
-  private async generateTokens(
-    payload: JwtPayload
-  ) {
-    const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(payload, {
-        secret: this.config.get<string>('JWT_SECRET')
-        // expiresIn: this.config.get<string>('JWT_EXPIRES_IN'),
+  generateTokens(payload: JwtPayload) {
+    const accessToken = this.jwtService.sign(payload, {
+      secret: this.config.get('JWT_SECRET'),
+      expiresIn: '15m',
+    });
 
-      }),
-      this.jwtService.signAsync(payload, {
-        secret: this.config.get<string>('JWT_SECRET')
-        // expiresIn: this.config.get<string>('JWT_REFRESH_EXPIRES_IN'),
-      }),
-    ]);
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: this.config.get('JWT_REFRESH_SECRET'),
+      expiresIn: '21d',
+    });
 
     return { accessToken, refreshToken };
+  }
+
+  generateAccessTokens(user: JwtPayload) {
+    const payload: JwtPayload = {
+      auth_id: user.auth_id,
+      fullName: user.fullName,
+      email: user.email,
+      phone: user.phone,
+      isActive: user.isActive,
+      role: user.role
+    }
+    const accessToken = this.jwtService.sign(payload, {
+      secret: this.config.get('JWT_SECRET'),
+      expiresIn: '15m',
+    });
+
+    return { accessToken };
   }
 
   getCookieOptions(maxAge: number) {

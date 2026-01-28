@@ -35,6 +35,8 @@ import { Route as adminAdminAdminLayoutProductsRouteImport } from './routes/(adm
 import { Route as rootRootLayoutAuthenticatedOrdersIndexRouteImport } from './routes/(root)/_rootLayout/_authenticated/orders/index'
 import { Route as rootRootLayoutAuthenticatedCartIndexRouteImport } from './routes/(root)/_rootLayout/_authenticated/cart/index'
 import { Route as rootRootLayoutAuthenticatedAccountIndexRouteImport } from './routes/(root)/_rootLayout/_authenticated/account/index'
+import { Route as rootRootLayoutAuthenticatedOrdersSlugRouteImport } from './routes/(root)/_rootLayout/_authenticated/orders/$slug'
+import { Route as rootRootLayoutAuthenticatedCartCheckoutRouteImport } from './routes/(root)/_rootLayout/_authenticated/cart/checkout'
 
 const rootRootLayoutRoute = rootRootLayoutRouteImport.update({
   id: '/(root)/_rootLayout',
@@ -175,6 +177,18 @@ const rootRootLayoutAuthenticatedAccountIndexRoute =
     path: '/account/',
     getParentRoute: () => rootRootLayoutRoute,
   } as any)
+const rootRootLayoutAuthenticatedOrdersSlugRoute =
+  rootRootLayoutAuthenticatedOrdersSlugRouteImport.update({
+    id: '/_authenticated/orders/$slug',
+    path: '/orders/$slug',
+    getParentRoute: () => rootRootLayoutRoute,
+  } as any)
+const rootRootLayoutAuthenticatedCartCheckoutRoute =
+  rootRootLayoutAuthenticatedCartCheckoutRouteImport.update({
+    id: '/_authenticated/cart/checkout',
+    path: '/cart/checkout',
+    getParentRoute: () => rootRootLayoutRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/admin': typeof adminAdminAdminLayoutRouteWithChildren
@@ -197,6 +211,8 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof adminAdminAdminLayoutIndexRoute
   '/categories': typeof rootRootLayoutCategoriesIndexRoute
   '/products': typeof rootRootLayoutProductsIndexRoute
+  '/cart/checkout': typeof rootRootLayoutAuthenticatedCartCheckoutRoute
+  '/orders/$slug': typeof rootRootLayoutAuthenticatedOrdersSlugRoute
   '/account': typeof rootRootLayoutAuthenticatedAccountIndexRoute
   '/cart': typeof rootRootLayoutAuthenticatedCartIndexRoute
   '/orders': typeof rootRootLayoutAuthenticatedOrdersIndexRoute
@@ -221,6 +237,8 @@ export interface FileRoutesByTo {
   '/admin': typeof adminAdminAdminLayoutIndexRoute
   '/categories': typeof rootRootLayoutCategoriesIndexRoute
   '/products': typeof rootRootLayoutProductsIndexRoute
+  '/cart/checkout': typeof rootRootLayoutAuthenticatedCartCheckoutRoute
+  '/orders/$slug': typeof rootRootLayoutAuthenticatedOrdersSlugRoute
   '/account': typeof rootRootLayoutAuthenticatedAccountIndexRoute
   '/cart': typeof rootRootLayoutAuthenticatedCartIndexRoute
   '/orders': typeof rootRootLayoutAuthenticatedOrdersIndexRoute
@@ -250,6 +268,8 @@ export interface FileRoutesById {
   '/(admin)/admin/_adminLayout/': typeof adminAdminAdminLayoutIndexRoute
   '/(root)/_rootLayout/categories/': typeof rootRootLayoutCategoriesIndexRoute
   '/(root)/_rootLayout/products/': typeof rootRootLayoutProductsIndexRoute
+  '/(root)/_rootLayout/_authenticated/cart/checkout': typeof rootRootLayoutAuthenticatedCartCheckoutRoute
+  '/(root)/_rootLayout/_authenticated/orders/$slug': typeof rootRootLayoutAuthenticatedOrdersSlugRoute
   '/(root)/_rootLayout/_authenticated/account/': typeof rootRootLayoutAuthenticatedAccountIndexRoute
   '/(root)/_rootLayout/_authenticated/cart/': typeof rootRootLayoutAuthenticatedCartIndexRoute
   '/(root)/_rootLayout/_authenticated/orders/': typeof rootRootLayoutAuthenticatedOrdersIndexRoute
@@ -277,6 +297,8 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/categories'
     | '/products'
+    | '/cart/checkout'
+    | '/orders/$slug'
     | '/account'
     | '/cart'
     | '/orders'
@@ -301,6 +323,8 @@ export interface FileRouteTypes {
     | '/admin'
     | '/categories'
     | '/products'
+    | '/cart/checkout'
+    | '/orders/$slug'
     | '/account'
     | '/cart'
     | '/orders'
@@ -329,6 +353,8 @@ export interface FileRouteTypes {
     | '/(admin)/admin/_adminLayout/'
     | '/(root)/_rootLayout/categories/'
     | '/(root)/_rootLayout/products/'
+    | '/(root)/_rootLayout/_authenticated/cart/checkout'
+    | '/(root)/_rootLayout/_authenticated/orders/$slug'
     | '/(root)/_rootLayout/_authenticated/account/'
     | '/(root)/_rootLayout/_authenticated/cart/'
     | '/(root)/_rootLayout/_authenticated/orders/'
@@ -524,6 +550,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof rootRootLayoutAuthenticatedAccountIndexRouteImport
       parentRoute: typeof rootRootLayoutRoute
     }
+    '/(root)/_rootLayout/_authenticated/orders/$slug': {
+      id: '/(root)/_rootLayout/_authenticated/orders/$slug'
+      path: '/orders/$slug'
+      fullPath: '/orders/$slug'
+      preLoaderRoute: typeof rootRootLayoutAuthenticatedOrdersSlugRouteImport
+      parentRoute: typeof rootRootLayoutRoute
+    }
+    '/(root)/_rootLayout/_authenticated/cart/checkout': {
+      id: '/(root)/_rootLayout/_authenticated/cart/checkout'
+      path: '/cart/checkout'
+      fullPath: '/cart/checkout'
+      preLoaderRoute: typeof rootRootLayoutAuthenticatedCartCheckoutRouteImport
+      parentRoute: typeof rootRootLayoutRoute
+    }
   }
 }
 
@@ -564,6 +604,8 @@ interface rootRootLayoutRouteChildren {
   rootRootLayoutProductsSlugRoute: typeof rootRootLayoutProductsSlugRoute
   rootRootLayoutCategoriesIndexRoute: typeof rootRootLayoutCategoriesIndexRoute
   rootRootLayoutProductsIndexRoute: typeof rootRootLayoutProductsIndexRoute
+  rootRootLayoutAuthenticatedCartCheckoutRoute: typeof rootRootLayoutAuthenticatedCartCheckoutRoute
+  rootRootLayoutAuthenticatedOrdersSlugRoute: typeof rootRootLayoutAuthenticatedOrdersSlugRoute
   rootRootLayoutAuthenticatedAccountIndexRoute: typeof rootRootLayoutAuthenticatedAccountIndexRoute
   rootRootLayoutAuthenticatedCartIndexRoute: typeof rootRootLayoutAuthenticatedCartIndexRoute
   rootRootLayoutAuthenticatedOrdersIndexRoute: typeof rootRootLayoutAuthenticatedOrdersIndexRoute
@@ -580,6 +622,10 @@ const rootRootLayoutRouteChildren: rootRootLayoutRouteChildren = {
   rootRootLayoutProductsSlugRoute: rootRootLayoutProductsSlugRoute,
   rootRootLayoutCategoriesIndexRoute: rootRootLayoutCategoriesIndexRoute,
   rootRootLayoutProductsIndexRoute: rootRootLayoutProductsIndexRoute,
+  rootRootLayoutAuthenticatedCartCheckoutRoute:
+    rootRootLayoutAuthenticatedCartCheckoutRoute,
+  rootRootLayoutAuthenticatedOrdersSlugRoute:
+    rootRootLayoutAuthenticatedOrdersSlugRoute,
   rootRootLayoutAuthenticatedAccountIndexRoute:
     rootRootLayoutAuthenticatedAccountIndexRoute,
   rootRootLayoutAuthenticatedCartIndexRoute:
