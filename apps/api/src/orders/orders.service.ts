@@ -8,10 +8,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { CreateOrderDto, UpdateOrderStatusDto, CancelOrderDto, QueryOrderDto } from './dto';
 import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
-import { AppRolesEnum } from 'src/type/role';
 import { Product, ProductDocument } from 'src/models/product.shcema';
 import { Order, OrderDocument, OrderStatus, OrderItemSchema } from 'src/models/order.schema';
 import { Cart, CartDocument } from 'src/models/cart.schema';
+import { AppRole } from 'src/type';
 
 interface OrderItem {
   productId: Types.ObjectId;
@@ -119,7 +119,11 @@ export class OrderService {
       );
     }
 
-    return this.toDetailEntity(order);
+    return {
+      success: true,
+      message: 'success',
+      data: this.toDetailEntity(order)
+    }
   }
 
 
@@ -170,13 +174,17 @@ export class OrderService {
     ]);
 
     return {
-      data: orders.map((o) => this.toListEntity(o)),
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
+      success: true,
+      message: 'success',
+      data: {
+        data: orders.map((o) => this.toListEntity(o)),
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        }
+      }
     };
   }
 
@@ -197,11 +205,15 @@ export class OrderService {
     }
 
     // Users can only view their own orders
-    if (user.role === AppRolesEnum.USER && order.userId._id.toString() !== user.auth_id) {
+    if (user.role === AppRole.USER && order.userId._id.toString() !== user.auth_id) {
       throw new ForbiddenException('You can only view your own orders');
     }
 
-    return this.toDetailEntity(order);
+    return {
+      success: true,
+      message: 'success',
+      data: this.toDetailEntity(order)
+    }
   }
 
   async findByOrderNumber(orderNumber: string, user: JwtPayload) {
@@ -217,11 +229,15 @@ export class OrderService {
     }
 
     // Users can only view their own orders
-    if (user.role === AppRolesEnum.USER && order.userId._id.toString() !== user.auth_id) {
+    if (user.role === AppRole.USER && order.userId._id.toString() !== user.auth_id) {
       throw new ForbiddenException('You can only view your own orders');
     }
 
-    return this.toDetailEntity(order);
+    return {
+      success: true,
+      message: 'success',
+      data: this.toDetailEntity(order)
+    }
   }
 
   async updateStatus(
@@ -266,7 +282,11 @@ export class OrderService {
 
     await order.save();
 
-    return this.toDetailEntity(order);
+    return {
+      success: true,
+      message: 'success',
+      data: this.toDetailEntity(order)
+    };
   }
 
   async cancel(id: string, cancelDto: CancelOrderDto, user: JwtPayload) {
@@ -281,7 +301,7 @@ export class OrderService {
     }
 
     // Users can only cancel their own orders
-    if (user.role === AppRolesEnum.USER && order.userId.toString() !== user.auth_id) {
+    if (user.role === AppRole.USER && order.userId.toString() !== user.auth_id) {
       throw new ForbiddenException('You can only cancel your own orders');
     }
 
@@ -305,7 +325,7 @@ export class OrderService {
     // Release reserved stock
     await this.releaseStock(order.items);
 
-    return { message: 'Order cancelled successfully', order: this.toDetailEntity(order) };
+    return { success: true, message: 'Order cancelled successfully', data: this.toDetailEntity(order) };
   }
 
   async getOrderStats(userId?: string) {
@@ -332,15 +352,19 @@ export class OrderService {
     ]);
 
     return {
-      total,
-      totalRevenue: totalRevenue[0]?.total || 0,
-      byStatus: stats.reduce((acc, stat) => {
-        acc[stat._id] = {
-          count: stat.count,
-          totalAmount: stat.totalAmount,
-        };
-        return acc;
-      }, {}),
+      success: true,
+      message: "success",
+      data: {
+        total,
+        totalRevenue: totalRevenue[0]?.total || 0,
+        byStatus: stats.reduce((acc, stat) => {
+          acc[stat._id] = {
+            count: stat.count,
+            totalAmount: stat.totalAmount,
+          };
+          return acc;
+        }, {}),
+      }
     };
   }
 

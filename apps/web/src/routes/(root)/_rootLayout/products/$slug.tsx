@@ -21,7 +21,7 @@ import {
   Check,
   Eye,
 } from 'lucide-react'
-import { AddToCartButton } from '@/components/ui/add-to-cart-button'
+import { AddToCartButton } from '@/components/cart/add-to-cart-button'
 
 export const Route = createFileRoute('/(root)/_rootLayout/products/$slug')({
   component: ProductDetailPage,

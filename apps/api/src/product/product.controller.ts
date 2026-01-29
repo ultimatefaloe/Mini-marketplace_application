@@ -10,6 +10,7 @@ import {
   HttpCode,
   HttpStatus,
   UploadedFiles,
+  UseGuards,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto, UpdateProductDto, QueryProductDto } from './dto';
@@ -17,6 +18,8 @@ import { Roles, CurrentUser, Public } from '../auth/decorators';
 import type { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 import { Upload } from 'src/cloudinary/decorators/upload.decorator';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { RolesGuard } from 'src/auth/guards';
+import { AppRole } from 'src/type';
 
 @Controller('products')
 export class ProductController {
@@ -25,21 +28,30 @@ export class ProductController {
   ) { }
 
   @Post()
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @UseGuards(RolesGuard)
+  @Roles(AppRole.ADMIN, AppRole.SUPER_ADMIN)
   @HttpCode(HttpStatus.CREATED)
   @Upload('images', 8)
   async create(
-    @Body() createProductDto: CreateProductDto,
+    @Body() dto: CreateProductDto,
     @CurrentUser() user: JwtPayload,
-    @UploadedFiles() file: Express.Multer.File[]
+    @UploadedFiles() files: Express.Multer.File[],
   ) {
-    const result = await this.cloudinaryService.uploadMultipleFiles(file, 'mini-marketplace/products');
-    const images: string[] = result.length > 0 ? result.map(r => r.secure_url) : createProductDto.images!
-    return this.productService.create(createProductDto, images, user);
+    const uploads = await this.cloudinaryService.uploadMultipleFiles(
+      files,
+      'mini-marketplace/products',
+    );
+
+    const images = uploads.length
+      ? uploads.map(u => u.secure_url)
+      : dto.images!;
+
+    return this.productService.create(dto, images, user);
   }
 
+
+
   @Get()
-  @Public()
   findAll(@Query() query: QueryProductDto) {
     return this.productService.findAll(query);
   }
@@ -50,47 +62,47 @@ export class ProductController {
     return this.productService.findOne(id);
   }
 
-@Patch(':id')
-@Roles('ADMIN', 'SUPER_ADMIN')
-@Upload('images', 8)
-async update(
-  @Param('id') id: string,
-  @Body() updateProductDto: UpdateProductDto,
-  @CurrentUser() user: JwtPayload,
-  @UploadedFiles() files: Express.Multer.File[],
-) {
-  const uploads = await this.cloudinaryService.uploadMultipleFiles(
-    files,
-    'mini-marketplace/products',
-  );
+  @Patch(':id')
+  @UseGuards(RolesGuard)
+  @Upload('images', 8)
+  async update(
+    @Param('id') id: string,
+    @Body() updateProductDto: UpdateProductDto,
+    @CurrentUser() user: JwtPayload,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    const uploads = await this.cloudinaryService.uploadMultipleFiles(
+      files,
+      'mini-marketplace/products',
+    );
 
-  const uploadedImages = uploads.map((r) => r.secure_url);
+    const uploadedImages = uploads.map((r) => r.secure_url);
 
-  return this.productService.update(
-    id,
-    updateProductDto,
-    uploadedImages,
-    user,
-  );
-}
+    return this.productService.update(
+      id,
+      updateProductDto,
+      uploadedImages,
+      user,
+    );
+  }
 
 
   @Delete(':id')
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @UseGuards(RolesGuard)
   @HttpCode(HttpStatus.OK)
   remove(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     return this.productService.remove(id, user);
   }
 
   @Patch(':id/deactivate')
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @UseGuards(RolesGuard)
   @HttpCode(HttpStatus.OK)
   softDelete(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     return this.productService.softDelete(id, user);
   }
 
   @Patch(':id/stock/:sku')
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @UseGuards(RolesGuard)
   @HttpCode(HttpStatus.OK)
   updateStock(
     @Param('id') id: string,

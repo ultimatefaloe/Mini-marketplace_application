@@ -6,6 +6,9 @@ export const queryKeys = {
   products: {
     all: (filters?: Record<string, any>) => ['products', 'list', filters] as const,
     detail: (id: string) => ['products', 'detail', id] as const,
+    bySlug: (slug: string) => ['products', 'slug', slug] as const,
+    featured: (limit?: number) => ['featured', 'limit', limit] as const,
+    related: (id: string, limit?: number) => ['related', 'productId', id, 'slug', limit] as const,
   },
 
   categories: {

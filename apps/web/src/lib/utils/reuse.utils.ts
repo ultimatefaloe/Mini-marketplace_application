@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const formatCurrency = (amount: string | number) => {
-  const num = parseFloat(amount.toString());
+  const num = parseFloat(amount.toString()) / 100;
   if (isNaN(num)) return "₦0.00";
   return `₦${num.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };

@@ -10,13 +10,14 @@ import {
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Upload, UploadSingle } from 'src/cloudinary/decorators/upload.decorator';
+import { AppRole } from 'src/type';
 
 @Controller('upload')
 export class UploadController {
   constructor(private cloudinaryService: CloudinaryService) { }
 
   @Post('single')
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @Roles(AppRole.ADMIN, AppRole.SUPER_ADMIN)
   @UploadSingle('image')
   async uploadSingle(@UploadedFiles() file: Express.Multer.File) {
     if (!file) {
@@ -35,7 +36,7 @@ export class UploadController {
   }
 
   @Post('multiple')
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @Roles(AppRole.ADMIN, AppRole.SUPER_ADMIN)
   @Upload('images', 8)
   async uploadMultiple(@UploadedFiles() files: Express.Multer.File[]) {
     if (!files || files.length === 0) {
@@ -57,7 +58,7 @@ export class UploadController {
   }
 
   @Post('product')
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @Roles(AppRole.ADMIN, AppRole.SUPER_ADMIN)
   @Upload('images', 8)
   async uploadProductImages(@UploadedFiles() files: Express.Multer.File[]) {
     if (!files || files.length === 0) {
@@ -82,7 +83,7 @@ export class UploadController {
   }
 
   @Post('category')
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @Roles(AppRole.ADMIN, AppRole.SUPER_ADMIN)
   @UploadSingle('icon')
   async uploadCategoryIcon(@UploadedFiles() file: Express.Multer.File) {
     if (!file) {
@@ -100,7 +101,7 @@ export class UploadController {
   }
 
   @Delete('single')
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @Roles(AppRole.ADMIN, AppRole.SUPER_ADMIN)
   async deleteFile(@Body('publicId') publicId: string) {
     if (!publicId) {
       throw new BadRequestException('Public ID is required');
@@ -114,7 +115,7 @@ export class UploadController {
   }
 
   @Delete('multiple')
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @Roles(AppRole.ADMIN, AppRole.SUPER_ADMIN)
   async deleteMultipleFiles(@Body('publicIds') publicIds: string[]) {
     if (!publicIds || publicIds.length === 0) {
       throw new BadRequestException('Public IDs are required');
@@ -128,7 +129,7 @@ export class UploadController {
   }
 
   @Delete('by-url')
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @Roles(AppRole.ADMIN, AppRole.SUPER_ADMIN)
   async deleteFileByUrl(@Body('url') url: string) {
     if (!url) {
       throw new BadRequestException('URL is required');

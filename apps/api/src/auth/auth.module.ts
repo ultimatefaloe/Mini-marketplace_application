@@ -12,7 +12,7 @@ import { GoogleStrategy, JwtStrategy, RefreshJwtStrategy } from './strategies';
 @Module({
   imports: [
     PassportModule,
-    JwtModule,
+    JwtModule.register({}),
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: Admin.name, schema: AdminSchema },
@@ -28,7 +28,7 @@ import { GoogleStrategy, JwtStrategy, RefreshJwtStrategy } from './strategies';
   ],
   exports: [
     AuthService,
-    JwtModule
+    JwtModule,
   ],
 })
 export class AuthModule { }

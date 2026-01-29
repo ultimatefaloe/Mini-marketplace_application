@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useUserSignup } from '@/api/auth.query';
+import { useUserSignup } from '@/api/queries/auth.query';
 import { useAuth } from '@/hooks';
 import { AuthFormWrapper, GoogleAuthButton } from '@/components/auth';
 import { Eye, EyeOff } from 'lucide-react';

@@ -1,88 +1,162 @@
-import React, { useEffect } from 'react'
-import { useCartStore } from '@/store/cart.store'
-import { useAuth } from '@/hooks'
-import { toast } from 'react-toastify'
+import React, { useEffect, useCallback, useRef } from 'react';
+import { useCartStore } from '@/store/cart.store';
+import { useAuth } from '@/hooks';
+import { toast } from 'react-toastify';
+import { useAddToCart } from '@/api/mutations';
+import { useCart as useCartQuery } from '@/api/hooks';
+import type { ObjectId } from '@/types';
 
 interface CartProviderProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
-  const { isAuthenticated, isLoading: authLoading } = useAuth()
-  const { syncCartWithServer, localCart } = useCartStore()
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const {
+    localCart,
+    setServerCart,
+    setSyncing,
+    clearLocalCart,
+    setError,
+  } = useCartStore();
 
-  // Handle cart synchronization on mount and auth changes
-  useEffect(() => {
-    const handleCartSync = async () => {
-      if (isAuthenticated && !authLoading && localCart.items.length > 0) {
-        try {
-          await syncCartWithServer()
+  const addToCartMutation = useAddToCart();
+  const { data: serverCartData, refetch: refetchServerCart } = useCartQuery();
 
-          // Show success notification only once
-          setTimeout(() => {
-            toast.success('Cart synchronized')
-          }, 500)
-        } catch (error) {
-          console.error('Failed to sync cart:', error)
+  // Track if sync has been completed to avoid duplicate syncs
+  const hasSyncedRef = useRef(false);
+  const isSyncingRef = useRef(false);
 
-          // Don't show error toast on initial load to avoid annoyance
-          if (localCart.items.length > 0) {
-            toast.error(
-              'Some items could not be saved. They remain in your local cart.',
-            )
-          }
-        }
+  /**
+   * Sync local cart with server
+   */
+  const syncCartWithServer = useCallback(async () => {
+    if (
+      !isAuthenticated ||
+      localCart.items.length === 0 ||
+      isSyncingRef.current
+    ) {
+      return;
+    }
+
+    isSyncingRef.current = true;
+    setSyncing(true);
+
+    try {
+      // Add all local items to server cart
+      for (const localItem of localCart.items) {
+        await addToCartMutation.mutateAsync({
+          productId: localItem.productId as ObjectId,
+          quantity: localItem.quantity,
+        });
       }
-    }
 
-    // Only sync if user is authenticated and has local cart items
-    if (isAuthenticated && localCart.items.length > 0) {
-      handleCartSync()
-    }
-  }, [isAuthenticated, authLoading, localCart.items.length, syncCartWithServer])
+      // Fetch updated cart
+      await refetchServerCart();
 
-  // Clear server cart on logout
+      // Clear local cart after successful sync
+      clearLocalCart();
+      hasSyncedRef.current = true;
+
+      toast.success('Your cart has been synchronized');
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to sync cart';
+      setError(errorMessage);
+      console.error('Cart sync error:', error);
+
+      // Show error but don't clear local cart
+      toast.error('Could not sync cart. Items remain in local storage.');
+    } finally {
+      setSyncing(false);
+      isSyncingRef.current = false;
+    }
+  }, [
+    isAuthenticated,
+    localCart.items,
+    addToCartMutation,
+    refetchServerCart,
+    clearLocalCart,
+    setSyncing,
+    setError,
+  ]);
+
+  /**
+   * Sync cart when user logs in
+   */
   useEffect(() => {
-    const handleLogout = () => {
-      const { _setServerCart } = useCartStore.getState()
-      _setServerCart(null)
+    const shouldSync =
+      isAuthenticated &&
+      !authLoading &&
+      localCart.items.length > 0 &&
+      !hasSyncedRef.current;
+
+    if (shouldSync) {
+      syncCartWithServer();
     }
+  }, [isAuthenticated, authLoading, localCart.items.length, syncCartWithServer]);
 
-    // Listen for auth logout event
-    const handleAuthLogout = () => handleLogout()
-    window.addEventListener('auth-logout', handleAuthLogout)
-
-    return () => {
-      window.removeEventListener('auth-logout', handleAuthLogout)
+  /**
+   * Update server cart in store when fetched
+   */
+  useEffect(() => {
+    if (isAuthenticated && serverCartData) {
+      setServerCart(serverCartData);
     }
-  }, [])
+  }, [isAuthenticated, serverCartData, setServerCart]);
 
-  // Handle offline/online state for cart persistence
+  /**
+   * Clear server cart on logout
+   */
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setServerCart(null);
+      hasSyncedRef.current = false;
+    }
+  }, [isAuthenticated, setServerCart]);
+
+  /**
+   * Handle online/offline state
+   */
   useEffect(() => {
     const handleOnline = () => {
-      // When coming back online, attempt to sync if authenticated
       if (isAuthenticated && localCart.items.length > 0) {
-        toast.info('Attempting to sync cart with server...')
-        syncCartWithServer().catch(() => {
-          toast.error(
-            'Sync failed, please check your connection and try again.',
-          )
-        })
+        toast.info('Reconnected. Syncing cart...');
+        syncCartWithServer();
       }
-    }
+    };
 
     const handleOffline = () => {
-      toast.warning('Offline, cart changes will be saved locally.')
-    }
+      toast.warning('You are offline. Cart changes will be saved locally.');
+    };
 
-    window.addEventListener('online', handleOnline)
-    window.addEventListener('offline', handleOffline)
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 
     return () => {
-      window.removeEventListener('online', handleOnline)
-      window.removeEventListener('offline', handleOffline)
-    }
-  }, [isAuthenticated, localCart.items.length, syncCartWithServer])
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [isAuthenticated, localCart.items.length, syncCartWithServer]);
 
-  return <>{children}</>
-}
+  /**
+   * Handle before unload - warn if cart sync is pending
+   */
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isSyncingRef.current) {
+        e.preventDefault();
+        e.returnValue = 'Cart is syncing. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
+
+  return <>{children}</>;
+};

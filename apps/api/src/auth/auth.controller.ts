@@ -6,9 +6,9 @@ import { GoogleAuthGuard, JwtRefreshGuard } from './guards';
 import { SignUpDto, AdminSignUpDto, SignInDto, RequestResetDto, ResetPasswordDto } from './dto';
 import { ConfigService } from '@nestjs/config';
 import type { JwtPayload } from './interfaces/jwt-payload.interface';
-import { AppRolesEnum } from 'src/type/role';
 import { Public, CurrentUser } from './decorators';
 import { RefreshUser } from './decorators/refresh.decorator';
+import { AppRole } from 'src/type';
 
 @Controller('auth')
 export class AuthController {
@@ -44,7 +44,7 @@ export class AuthController {
   @Get('user/google/callback')
   @UseGuards(GoogleAuthGuard)
   async googleUserCallback(@Req() req: Request, @Res() res: Response) {
-    const tokens = await this.authService.googleAuth(req.user, AppRolesEnum.USER);
+    const tokens = await this.authService.googleAuth(req.user, AppRole.USER);
     this.setAuthCookies(res, tokens);
     res.redirect(`${this.config.get<string>('FRONTEND_URL')}`);
   }
@@ -76,7 +76,7 @@ export class AuthController {
   @Get('admin/google/callback')
   @UseGuards(GoogleAuthGuard)
   async googleAdminCallback(@Req() req: Request, @Res() res: Response) {
-    const tokens = await this.authService.googleAuth(req.user, AppRolesEnum.ADMIN);
+    const tokens = await this.authService.googleAuth(req.user, AppRole.ADMIN);
     this.setAuthCookies(res, tokens);
     res.redirect(`${this.config.get<string>('FRONTEND_URL')}/admin`);
   }
@@ -86,14 +86,14 @@ export class AuthController {
   @Post('user/request-reset')
   @HttpCode(HttpStatus.OK)
   async userRequestReset(@Body() dto: RequestResetDto) {
-    return this.authService.requestPasswordReset(dto, AppRolesEnum.USER);
+    return this.authService.requestPasswordReset(dto, AppRole.USER);
   }
 
   @Public()
   @Post('admin/request-reset')
   @HttpCode(HttpStatus.OK)
   async adminRequestReset(@Body() dto: RequestResetDto) {
-    return this.authService.requestPasswordReset(dto, AppRolesEnum.ADMIN);
+    return this.authService.requestPasswordReset(dto, AppRole.ADMIN);
   }
 
   @Public()
@@ -129,6 +129,7 @@ export class AuthController {
     };
   }
 
+  @Public()
   @UseGuards(JwtRefreshGuard)
   @Get('refresh')
   @HttpCode(HttpStatus.OK)
@@ -148,7 +149,7 @@ export class AuthController {
   // getUserProfile(@CurrentUser() user: JwtPayload) { }
 
   // @Get('admin/profile')
-  // @Roles('ADMIN', 'SUPER_ADMIN')
+  // @Roles(AppRole.ADMIN, AppRole.SUPER_ADMIN)
   // getAdminProfile(@CurrentUser() user: JwtPayload) { }
 
   // ========== HELPERS ==========

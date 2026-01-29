@@ -97,7 +97,7 @@ export interface IProductQueryFilters {
   page?: number;
   limit?: number;
   search?: string;
-  categoryId?: ObjectId;
+  categorySlug?: ObjectId;
   brand?: string;
   tags?: string;
   minPrice?: number;

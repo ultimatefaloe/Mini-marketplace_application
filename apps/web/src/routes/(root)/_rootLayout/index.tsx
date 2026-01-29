@@ -12,6 +12,7 @@ import {
   TrendingUp,
   Zap,
   Crown,
+  Telescope,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -19,16 +20,11 @@ import { Card, CardContent } from '@/components/ui/card'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import type { IProductListItem } from '@/types'
-import {
-  sampleProducts,
-  getAllBrands,
-  getAllTags,
-  categories,
-} from '@/data/product'
 import type { HeroType } from '@/components/home'
 import HeroCarousel from '@/components/home/hero-carousel'
 import CategoriesCarousel from '@/components/ui/categories-carousel'
 import { ProductCard } from '@/components/ui/product-card'
+import { categoriesQuery, productsQuery } from '@/api/queries'
 
 // Hero Carousel Data
 const heroSlides: HeroType[] = [
@@ -80,16 +76,18 @@ const iconMap: Record<string, any> = {
 
 export const Route = createFileRoute('/(root)/_rootLayout/')({
   component: HomeClient,
-  loader: () => {
-    const brands = getAllBrands()
-    const tags = getAllTags()
-    const maxPrice = Math.max(...sampleProducts.map((p) => p.price), 0)
+  loader: async ({ context }) => {
+    const [categories, products] = await Promise.all([
+      context.queryClient.ensureQueryData(categoriesQuery()),
+      context.queryClient.ensureQueryData(productsQuery()),
+    ])
 
-    return { brands, tags, maxPrice }
+    return { categories, products }
   },
 })
 
 export default function HomeClient() {
+  const { categories, products } = Route.useLoaderData()
   const scrollRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
   const scrollLeft = (categoryId: string) => {
@@ -109,9 +107,10 @@ export default function HomeClient() {
   // Group products by category
   const productsByCategory = categories.reduce(
     (acc, category) => {
-      acc[category._id] = sampleProducts
+      acc[category._id] = products
         .filter((p) => p.categoryId === category._id)
         .slice(0, 10)
+
       return acc
     },
     {} as Record<string, IProductListItem[]>,
@@ -163,29 +162,33 @@ export default function HomeClient() {
               {/* Products Grid - Horizontal Scroll */}
               <div className="relative">
                 {/* Scroll Buttons for Desktop */}
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-white shadow-lg hover:bg-mmp-neutral border-mmp-primary/20 hidden md:flex"
-                  onClick={() => scrollLeft(category._id)}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
+                {productsByCategory[category._id].length > 5 && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-white shadow-lg hover:bg-mmp-neutral border-mmp-primary/20 hidden md:flex"
+                      onClick={() => scrollLeft(category._id)}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
 
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white shadow-lg hover:bg-mmp-neutral border-mmp-primary/20 hidden md:flex"
-                  onClick={() => scrollRight(category._id)}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white shadow-lg hover:bg-mmp-neutral border-mmp-primary/20 hidden md:flex"
+                      onClick={() => scrollRight(category._id)}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
 
                 {/* Scrollable Products Container */}
                 <ScrollArea className="w-full">
                   <div
                     // ref={(el) => (scrollRefs.current[category._id] = el)}
-                    className="flex gap-6 pb-4"
+                    className="flex justify-center gap-6 pb-4"
                     style={{ scrollBehavior: 'smooth' }}
                   >
                     {/* First Row - Top 5 Products */}
@@ -194,9 +197,7 @@ export default function HomeClient() {
                         ?.slice(0, 5)
                         .map((product) => (
                           <div key={product._id} className="flex-none">
-                            <ProductCard
-                              product={product}
-                            />
+                            <ProductCard product={product} />
                           </div>
                         ))}
                     </div>
@@ -207,37 +208,59 @@ export default function HomeClient() {
                         ?.slice(5, 10)
                         .map((product) => (
                           <div key={product._id} className="flex-none">
-                            <ProductCard
-                              product={product}
-                            />
+                            <ProductCard product={product} />
                           </div>
                         ))}
 
                       {/* View More Card */}
-                      <div className="flex-none min-w-[250px]">
-                        <Link
-                          to="/categories/$slug"
-                          params={{ slug: category.slug }}
-                        >
-                          <Card className="h-full border-mmp-primary/20 hover:border-mmp-secondary/50 transition-all duration-300 hover:shadow-lg group">
-                            <CardContent className="h-full p-8 flex flex-col items-center justify-center text-center">
-                              <div className="w-20 h-20 mb-6 rounded-full bg-gradient-to-br from-mmp-primary/10 to-mmp-accent/10 flex items-center justify-center group-hover:from-mmp-accent/20 group-hover:to-mmp-secondary/20 transition-all">
-                                <ArrowRight className="h-8 w-8 text-mmp-accent group-hover:text-mmp-secondary transition-colors" />
-                              </div>
-                              <h3 className="text-xl font-bold text-mmp-primary2 mb-2">
-                                View All {category.name}
-                              </h3>
-                              <p className="text-sm text-mmp-neutral/60 mb-4">
-                                Explore our complete collection
-                              </p>
-                              <Badge className="bg-gradient-to-r from-mmp-accent/20 to-mmp-secondary/20 text-mmp-accent border-0">
-                                {productsByCategory[category._id]?.length}+
-                                items
-                              </Badge>
-                            </CardContent>
-                          </Card>
-                        </Link>
-                      </div>
+                      {productsByCategory[category._id].length > 0 && (
+                        <div className="flex-none max-w-[200px]">
+                          <Link
+                            to="/categories/$slug"
+                            params={{ slug: category.slug }}
+                          >
+                            <Card className="h-full border-mmp-primary/20 hover:border-mmp-secondary/50 transition-all duration-300 hover:shadow-lg group">
+                              <CardContent className="h-full p-8 flex flex-col items-center justify-center text-center">
+                                <div className="w-20 h-20 mb-6 rounded-full bg-gradient-to-br from-mmp-primary/10 to-mmp-accent/10 flex items-center justify-center group-hover:from-mmp-accent/20 group-hover:to-mmp-secondary/20 transition-all">
+                                  <ArrowRight className="h-8 w-8 text-mmp-accent group-hover:text-mmp-secondary transition-colors" />
+                                </div>
+                                <h3 className="text-xl font-bold text-mmp-primary2 mb-2">
+                                  View All {category.name}
+                                </h3>
+                                <p className="text-sm text-mmp-neutral/60 mb-4">
+                                  Explore our complete collection
+                                </p>
+                                <Badge className="bg-gradient-to-r from-mmp-accent/20 to-mmp-secondary/20 text-mmp-accent border-0">
+                                  {productsByCategory[category._id]?.length}+
+                                  items
+                                </Badge>
+                              </CardContent>
+                            </Card>
+                          </Link>
+                        </div>
+                      )}
+
+                      {productsByCategory[category._id].length <= 0 && (
+                        <Card className="w-full h-full border-mmp-primary/20 hover:border-mmp-secondary/50 transition-all duration-300 hover:shadow-lg group">
+                          <CardContent className="h-full p-8 flex flex-col items-center justify-center text-center">
+                            <div className="w-20 h-20 mb-6 rounded-full bg-gradient-to-br from-mmp-primary/10 to-mmp-accent/10 flex items-center justify-center group-hover:from-mmp-accent/20 group-hover:to-mmp-secondary/20 transition-all">
+                              <Telescope className="h-8 w-8 text-mmp-accent group-hover:text-mmp-secondary transition-colors" />
+                            </div>
+
+                            <h3 className="text-xl font-bold text-mmp-primary2 mb-2">
+                              Nothing here yet
+                            </h3>
+
+                            <p className="text-sm text-mmp-accent mb-1">
+                              We’re adding new products behind the scenes.
+                            </p>
+
+                            <p className="text-xs text-mmp-primary/70">
+                              Check back soon — you won’t miss out 👀
+                            </p>
+                          </CardContent>
+                        </Card>
+                      )}
                     </div>
                   </div>
                   <ScrollBar orientation="horizontal" className="md:hidden" />

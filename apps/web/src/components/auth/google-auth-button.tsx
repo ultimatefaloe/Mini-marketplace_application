@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { FcGoogle } from 'react-icons/fc';
-import { useUserGoogleAuth } from '@/api/auth.query';
+import { useUserGoogleAuth } from '@/api/queries/auth.query';
 
 interface GoogleAuthButtonProps {
   variant?: 'user' | 'admin';

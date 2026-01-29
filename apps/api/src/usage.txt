@@ -5,7 +5,7 @@
 @Controller('products')
 export class ProductsController {
   @Get()
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @Roles(AppRole.ADMIN, AppRole.SUPER_ADMIN)
   findAll(@CurrentUser() user: JwtPayload) {
     return `Admin ${user.email} accessing products`;
   }

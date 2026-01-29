@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { formatCurrency } from '@/lib/utils'
-import { useOrders, useOrderStats } from '@/api/order.query'
+import { useOrders, useOrderStats } from '@/api/queries/order.query'
 import {
   Package,
   Clock,

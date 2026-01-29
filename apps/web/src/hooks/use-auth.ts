@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { useAuthStore } from '@/store';
-import { useValidateToken, useLogout } from '@/api';
+import { useValidateToken, useLogout } from '@/api/queries';
 import { useQueryClient } from '@tanstack/react-query';
 import { UserRole } from '@/types';
 

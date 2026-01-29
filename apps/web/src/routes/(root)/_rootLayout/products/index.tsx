@@ -1,20 +1,14 @@
 import React from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { z } from 'zod'
-import { ProductGrid } from '@/components/ui/product-card'
+import { ProductGrid, ProductListItem } from '@/components/ui/product-card'
 import { ProductFilters } from '@/components/ui/product-filters'
 import { Pagination, CompactPagination } from '@/components/ui/pagination'
 import { Button } from '@/components/ui/button'
-import {
-  sampleProducts,
-  getAllBrands,
-  getAllTags,
-  getMaxPrice,
-  filterProductsWithPagination,
-} from '@/data/product'
 import { formatCurrency } from '@/lib/utils'
 import type { IProductQueryFilters } from '@/types'
 import { Filter, Grid3x3, List, RefreshCw } from 'lucide-react'
+import { productsQuery } from '@/api/queries'
 
 export const Route = createFileRoute('/(root)/_rootLayout/products/')({
   component: ProductsPage,
@@ -55,11 +49,16 @@ export const Route = createFileRoute('/(root)/_rootLayout/products/')({
     sortBy: search.sortBy,
     sortOrder: search.sortOrder,
   }),
-  loader: ({ deps }) => {
-    const { products, meta } = filterProductsWithPagination(deps)
-    const brands = getAllBrands()
-    const tags = getAllTags()
-    const maxPrice = getMaxPrice()
+  loader: async ({ context, deps }) => {
+    const data = await context.queryClient.ensureQueryData(productsQuery(deps))
+    const products = data.data
+    const meta = data.pagination
+
+    const brands = Array.from(
+      new Set(products.map((p) => p.brand).filter(Boolean)),
+    ) as string[]
+    const tags = Array.from(new Set(products.flatMap((p) => p.tags)))
+    const maxPrice = Math.max(...products.map((p) => p.price), 0)
 
     return { products, meta, brands, tags, maxPrice }
   },
@@ -150,7 +149,7 @@ function ProductsPage() {
             <div className="flex items-center justify-center gap-4">
               <div className="text-center">
                 <div className="text-3xl font-bold">
-                  {sampleProducts.length}+
+                  {products.length}+
                 </div>
                 <div className="text-sm text-white/80">Total Products</div>
               </div>
@@ -323,7 +322,7 @@ function ProductsPage() {
                         type="button"
                         className="ml-2 text-indigo-600 hover:text-indigo-800"
                         onClick={() =>
-                          handleFilterChange({ categoryId: undefined })
+                          handleFilterChange({ categorySlug: undefined })
                         }
                       >
                         ×
@@ -408,122 +407,3 @@ function ProductsPage() {
   )
 }
 
-// List View Item Component
-const ProductListItem: React.FC<{ product: any }> = ({ product }) => {
-  const discountedPrice = product.price * (1 - product.discount / 100)
-
-  return (
-    <div className="flex flex-col sm:flex-row gap-4 rounded-lg border border-gray-200 bg-white p-4 hover:shadow-md transition-shadow">
-      {/* Product Image */}
-      <Link
-        to="/products/$slug"
-        params={{ slug: product.slug }}
-        className="block shrink-0"
-      >
-        <div className="h-48 w-48 overflow-hidden rounded-lg bg-gray-100 sm:h-32 sm:w-32">
-          <img
-            src={product.images[0]}
-            alt={product.name}
-            className="h-full w-full object-cover transition-transform hover:scale-105"
-            loading="lazy"
-          />
-          {product.discount > 0 && (
-            <div className="absolute top-3 left-3">
-              <span className="rounded-full bg-red-500 px-3 py-1 text-xs font-semibold text-white">
-                -{product.discount}%
-              </span>
-            </div>
-          )}
-        </div>
-      </Link>
-
-      {/* Product Info */}
-      <div className="flex-1">
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between">
-          <div className="flex-1">
-            <Link
-              to="/products/$slug"
-              params={{ slug: product.slug }}
-              className="block"
-            >
-              <h3 className="text-lg font-semibold text-gray-900 hover:text-mmp-primary transition-colors">
-                {product.name}
-              </h3>
-            </Link>
-            <p className="mt-1 text-sm text-gray-600 line-clamp-2">
-              {product.description}
-            </p>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <span className="text-xs font-medium text-gray-500 uppercase">
-                {product.brand}
-              </span>
-              <span className="text-xs text-gray-400">•</span>
-              <span className="text-xs text-gray-500">
-                {product.soldCount.toLocaleString()} sold
-              </span>
-              <span className="text-xs text-gray-400">•</span>
-              <div className="flex items-center gap-1">
-                <span className="text-xs text-gray-500">
-                  {(product.viewCount / 100).toFixed(1)}
-                </span>
-                <div className="flex">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <svg
-                      key={star}
-                      className="h-3 w-3 fill-current text-yellow-400"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                    </svg>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-2 sm:mt-0 sm:text-right">
-            <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-gray-900">
-                {formatCurrency(discountedPrice)}
-              </span>
-              {product.discount > 0 && (
-                <span className="text-sm text-gray-500 line-through">
-                  {formatCurrency(product.price)}
-                </span>
-              )}
-            </div>
-            {product.discount > 0 && (
-              <span className="inline-block rounded-full bg-red-100 px-2 py-1 text-xs font-semibold text-red-800 mt-1">
-                Save {product.discount}%
-              </span>
-            )}
-            <div className="mt-2 text-sm">
-              {product.stock > 0 ? (
-                product.stock < 10 ? (
-                  <span className="text-amber-600 font-medium">
-                    Only {product.stock} left!
-                  </span>
-                ) : (
-                  <span className="text-green-600">In stock</span>
-                )
-              ) : (
-                <span className="text-red-600">Out of stock</span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <Button className="bg-mmp-primary hover:bg-mmp-primary2">
-            Add to Cart
-          </Button>
-          <Button variant="outline">Quick View</Button>
-          <Button variant="ghost" size="sm">
-            Save for Later
-          </Button>
-        </div>
-      </div>
-    </div>
-  )
-}

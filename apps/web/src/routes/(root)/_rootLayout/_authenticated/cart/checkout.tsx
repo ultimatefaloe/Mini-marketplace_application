@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { formatCurrency } from '@/lib/utils'
 import { useCart } from '@/hooks/use-cart'
-import { useCreateOrder } from '@/api/order.query'
+import { useCreateOrder } from '@/api/queries/order.query'
 import {
   ArrowLeft,
   CreditCard,

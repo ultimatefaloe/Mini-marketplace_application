@@ -5,13 +5,6 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -23,6 +16,7 @@ import {
   X,
   ChevronDown,
   ChevronUp,
+  Search,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { IProductQueryFilters } from '@/types';
@@ -48,12 +42,42 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
     filters.minPrice || 0,
     filters.maxPrice || maxPrice,
   ]);
+  const [searchTerm, setSearchTerm] = React.useState(filters.search || '');
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [expandedSections, setExpandedSections] = React.useState({
+    search: true,
     price: true,
     brand: true,
     tags: true,
   });
+
+  // Debounced search
+  const searchTimeoutRef = React.useRef<NodeJS.Timeout>(null);
+
+  React.useEffect(() => {
+    setSearchTerm(filters.search || '');
+  }, [filters.search]);
+
+  React.useEffect(() => {
+    setPriceRange([
+      filters.minPrice || 0,
+      filters.maxPrice || maxPrice,
+    ]);
+  }, [filters.minPrice, filters.maxPrice, maxPrice]);
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // Debounce search (wait 500ms after user stops typing)
+    searchTimeoutRef.current = setTimeout(() => {
+      onFilterChange({ search: value || undefined });
+    }, 500);
+  };
 
   const handlePriceChange = (value: number[]) => {
     setPriceRange([value[0], value[1]]);
@@ -61,8 +85,8 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
 
   const handlePriceCommit = () => {
     onFilterChange({
-      minPrice: priceRange[0],
-      maxPrice: priceRange[1],
+      minPrice: priceRange[0] > 0 ? priceRange[0] : undefined,
+      maxPrice: priceRange[1] < maxPrice ? priceRange[1] : undefined,
     });
   };
 
@@ -74,18 +98,23 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
   };
 
   const clearFilters = () => {
+    setSearchTerm('');
+    setPriceRange([0, maxPrice]);
     onFilterChange({
-      search: '',
-      categoryId: undefined,
+      search: undefined,
       brand: undefined,
       minPrice: undefined,
       maxPrice: undefined,
       tags: undefined,
-      sortBy: undefined,
-      sortOrder: undefined,
     });
-    setPriceRange([0, maxPrice]);
   };
+
+  const hasActiveFilters = 
+    filters.search ||
+    filters.brand ||
+    filters.minPrice !== undefined ||
+    filters.maxPrice !== undefined ||
+    filters.tags;
 
   const FilterSection: React.FC<{
     title: string;
@@ -105,54 +134,29 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
           <ChevronDown className="h-5 w-5 text-gray-500" />
         )}
       </button>
-      {expandedSections[section] && children}
+      {expandedSections[section] && <div className="pt-2">{children}</div>}
     </div>
   );
 
   const filterContent = (
     <div className="space-y-6">
       {/* Search */}
-      <div>
-        <Label htmlFor="search" className="sr-only">
-          Search products
-        </Label>
-        <Input
-          id="search"
-          type="text"
-          placeholder="Search products..."
-          value={filters.search || ''}
-          onChange={(e) => onFilterChange({ search: e.target.value })}
-          className="w-full"
-        />
-      </div>
-
-      {/* Sort */}
-      <div>
-        <Label htmlFor="sort" className="mb-2 block text-sm font-medium">
-          Sort by
-        </Label>
-        <Select
-          value={filters.sortBy || 'createdAt'}
-          onValueChange={(value) =>
-            onFilterChange({ sortBy: value as IProductQueryFilters['sortBy'] })
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="createdAt">Newest</SelectItem>
-            <SelectItem value="price">Price: Low to High</SelectItem>
-            <SelectItem value="price_desc">Price: High to Low</SelectItem>
-            <SelectItem value="popularity">Popularity</SelectItem>
-            <SelectItem value="name">Name: A to Z</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <FilterSection title="Search" section="search">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <Input
+            type="text"
+            placeholder="Search products..."
+            value={searchTerm}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="w-full pl-9"
+          />
+        </div>
+      </FilterSection>
 
       {/* Price Range */}
       <FilterSection title="Price Range" section="price">
-        <div className="space-y-4 pt-2">
+        <div className="space-y-4">
           <Slider
             min={0}
             max={maxPrice}
@@ -162,16 +166,59 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
             onValueCommit={handlePriceCommit}
             className="py-4"
           />
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600">
-              Min: {priceRange[0].toLocaleString('en-NG', {
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex-1">
+              <Label htmlFor="min-price" className="text-xs text-gray-600">
+                Min
+              </Label>
+              <Input
+                id="min-price"
+                type="number"
+                min={0}
+                max={maxPrice}
+                value={priceRange[0]}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  if (value <= priceRange[1]) {
+                    setPriceRange([value, priceRange[1]]);
+                  }
+                }}
+                onBlur={handlePriceCommit}
+                className="mt-1"
+              />
+            </div>
+            <span className="text-gray-400 pt-5">-</span>
+            <div className="flex-1">
+              <Label htmlFor="max-price" className="text-xs text-gray-600">
+                Max
+              </Label>
+              <Input
+                id="max-price"
+                type="number"
+                min={0}
+                max={maxPrice}
+                value={priceRange[1]}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  if (value >= priceRange[0]) {
+                    setPriceRange([priceRange[0], value]);
+                  }
+                }}
+                onBlur={handlePriceCommit}
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <div className="flex items-center justify-between text-xs text-gray-600">
+            <span>
+              {priceRange[0].toLocaleString('en-NG', {
                 style: 'currency',
                 currency: 'NGN',
                 maximumFractionDigits: 0,
               })}
             </span>
-            <span className="text-gray-600">
-              Max: {priceRange[1].toLocaleString('en-NG', {
+            <span>
+              {priceRange[1].toLocaleString('en-NG', {
                 style: 'currency',
                 currency: 'NGN',
                 maximumFractionDigits: 0,
@@ -182,55 +229,59 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
       </FilterSection>
 
       {/* Brands */}
-      <FilterSection title="Brands" section="brand">
-        <div className="space-y-3 pt-2">
-          {brands.map((brand) => (
-            <div key={brand} className="flex items-center">
-              <Checkbox
-                id={`brand-${brand}`}
-                checked={filters.brand === brand}
-                onCheckedChange={(checked) =>
-                  onFilterChange({ brand: checked ? brand : undefined })
-                }
-              />
-              <Label
-                htmlFor={`brand-${brand}`}
-                className="ml-3 cursor-pointer text-sm text-gray-700"
-              >
-                {brand}
-              </Label>
-            </div>
-          ))}
-        </div>
-      </FilterSection>
+      {brands.length > 0 && (
+        <FilterSection title="Brands" section="brand">
+          <div className="space-y-3 max-h-64 overflow-y-auto">
+            {brands.map((brand) => (
+              <div key={brand} className="flex items-center">
+                <Checkbox
+                  id={`brand-${brand}`}
+                  checked={filters.brand === brand}
+                  onCheckedChange={(checked) =>
+                    onFilterChange({ brand: checked ? brand : undefined })
+                  }
+                />
+                <Label
+                  htmlFor={`brand-${brand}`}
+                  className="ml-3 cursor-pointer text-sm text-gray-700 hover:text-gray-900"
+                >
+                  {brand}
+                </Label>
+              </div>
+            ))}
+          </div>
+        </FilterSection>
+      )}
 
       {/* Tags */}
-      <FilterSection title="Tags" section="tags">
-        <div className="flex flex-wrap gap-2 pt-2">
-          {tags.map((tag) => (
-            <Button
-              key={tag}
-              type="button"
-              variant={filters.tags === tag ? 'default' : 'outline'}
-              size="sm"
-              className={cn(
-                'rounded-full',
-                filters.tags === tag
-                  ? 'bg-mmp-primary text-white hover:bg-mmp-primary2'
-                  : ''
-              )}
-              onClick={() =>
-                onFilterChange({ tags: filters.tags === tag ? undefined : tag })
-              }
-            >
-              {tag}
-            </Button>
-          ))}
-        </div>
-      </FilterSection>
+      {tags.length > 0 && (
+        <FilterSection title="Tags" section="tags">
+          <div className="flex flex-wrap gap-2">
+            {tags.map((tag) => (
+              <Button
+                key={tag}
+                type="button"
+                variant={filters.tags === tag ? 'default' : 'outline'}
+                size="sm"
+                className={cn(
+                  'rounded-full',
+                  filters.tags === tag
+                    ? 'bg-mmp-primary text-white hover:bg-mmp-primary2'
+                    : ''
+                )}
+                onClick={() =>
+                  onFilterChange({ tags: filters.tags === tag ? undefined : tag })
+                }
+              >
+                {tag}
+              </Button>
+            ))}
+          </div>
+        </FilterSection>
+      )}
 
       {/* Clear Filters */}
-      {(filters.search || filters.brand || filters.minPrice || filters.maxPrice || filters.tags) && (
+      {hasActiveFilters && (
         <Button
           type="button"
           variant="outline"
@@ -251,7 +302,7 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
         <div className="sticky top-24">
           <div className="mb-6 flex items-center justify-between">
             <h3 className="text-lg font-semibold">Filters</h3>
-            {(filters.search || filters.brand || filters.minPrice || filters.maxPrice || filters.tags) && (
+            {hasActiveFilters && (
               <Button
                 type="button"
                 variant="ghost"
@@ -270,9 +321,14 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
       <div className="lg:hidden">
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full relative">
               <Filter className="mr-2 h-4 w-4" />
               Filters & Sort
+              {hasActiveFilters && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-mmp-primary text-xs font-bold text-white flex items-center justify-center">
+                  !
+                </span>
+              )}
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-[85vw] max-w-sm overflow-y-auto">

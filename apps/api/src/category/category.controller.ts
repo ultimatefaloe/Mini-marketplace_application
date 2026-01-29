@@ -20,6 +20,7 @@ import { Public } from '../auth/decorators/public.decorator';
 import type { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 import { UploadSingle } from 'src/cloudinary/decorators/upload.decorator';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { AppRole } from 'src/type';
 
 @Controller('categories')
 export class CategoryController {
@@ -27,7 +28,7 @@ export class CategoryController {
     private readonly cloudinaryService: CloudinaryService) { }
 
   @Post()
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @Roles(AppRole.ADMIN, AppRole.SUPER_ADMIN)
   @HttpCode(HttpStatus.CREATED)
   @UploadSingle('icon')
   async create(
@@ -46,11 +47,11 @@ export class CategoryController {
     return this.categoryService.findAll(query);
   }
 
-  @Get('tree')
-  @Public()
-  getTree() {
-    return this.categoryService.getTree();
-  }
+  // @Get('tree')
+  // @Public()
+  // getTree() {
+  //   return this.categoryService.getTree();
+  // }
 
   @Get('slug/:slug')
   @Public()
@@ -65,7 +66,7 @@ export class CategoryController {
   }
 
   @Patch(':id')
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @Roles(AppRole.ADMIN, AppRole.SUPER_ADMIN)
   update(
     @Param('id') id: string,
     @Body() updateCategoryDto: UpdateCategoryDto,
@@ -75,21 +76,21 @@ export class CategoryController {
   }
 
   @Delete(':id')
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @Roles(AppRole.ADMIN, AppRole.SUPER_ADMIN)
   @HttpCode(HttpStatus.OK)
   remove(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     return this.categoryService.remove(id, user);
   }
 
   @Patch(':id/deactivate')
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @Roles(AppRole.ADMIN, AppRole.SUPER_ADMIN)
   @HttpCode(HttpStatus.OK)
   softDelete(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     return this.categoryService.softDelete(id, user);
   }
 
   @Post('reorder')
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @Roles(AppRole.ADMIN, AppRole.SUPER_ADMIN)
   @HttpCode(HttpStatus.OK)
   reorder(@Body() updates: Array<{ id: string; order: number }>) {
     return this.categoryService.reorder(updates);

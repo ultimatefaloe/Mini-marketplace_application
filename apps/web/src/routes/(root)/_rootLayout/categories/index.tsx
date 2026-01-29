@@ -1,88 +1,13 @@
+import { categoriesQuery } from '@/api/queries'
 import { Card } from '@/components/ui/card'
-import type { ICategoryTreeNode } from '@/types'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { Sparkles as SparklesIcon, Zap, Plus } from 'lucide-react'
 
-// This would typically come from an API
-// Categories Data
-const categories: ICategoryTreeNode[] = [
-  {
-    _id: 'cat_001',
-    name: "Men's Clothing",
-    slug: 'mens-clothing',
-    icon: 'https://images.unsplash.com/photo-1521334884684-d80222895322',
-    order: 1,
-  },
-  {
-    _id: 'cat_002',
-    name: "Women's Clothing",
-    slug: 'womens-clothing',
-    icon: 'https://images.unsplash.com/photo-1483985988355-763728e1935b',
-    order: 2,
-  },
-  {
-    _id: 'cat_003',
-    name: 'Footwear',
-    slug: 'footwear',
-    icon: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff',
-    order: 3,
-  },
-  {
-    _id: 'cat_004',
-    name: 'Accessories',
-    slug: 'accessories',
-    icon: 'https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3',
-    order: 4,
-  },
-  {
-    _id: 'cat_005',
-    name: 'Bags & Luggage',
-    slug: 'bags-luggage',
-    icon: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7',
-    order: 5,
-  },
-  {
-    _id: 'cat_006',
-    name: 'Eyewear',
-    slug: 'eyewear',
-    icon: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083',
-    order: 6,
-  },
-  {
-    _id: 'cat_007',
-    name: 'Jewelry',
-    slug: 'jewelry',
-    icon: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338',
-    order: 7,
-  },
-  {
-    _id: 'cat_008',
-    name: 'Activewear',
-    slug: 'activewear',
-    icon: 'https://images.unsplash.com/photo-1554284126-aa88f22d8b74',
-    order: 8,
-  },
-  {
-    _id: 'cat_009',
-    name: 'Luxury',
-    slug: 'luxury',
-    icon: 'https://images.unsplash.com/photo-1523170335258-f5ed11844a49',
-    order: 9,
-  },
-  {
-    _id: 'cat_010',
-    name: 'Trending',
-    slug: 'trending',
-    icon: 'https://images.unsplash.com/photo-1517148815978-75f6acaaf32c',
-    order: 10,
-  },
-]
 
 export const Route = createFileRoute('/(root)/_rootLayout/categories/')({
   component: CategoriesPage,
-  loader: async () => {
-    // In a real app, you would fetch this from an API
-    return categories
+  loader: async ({ context }) => {
+   return context.queryClient.ensureQueryData(categoriesQuery())
   },
 })
 

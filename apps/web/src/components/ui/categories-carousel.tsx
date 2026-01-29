@@ -3,10 +3,10 @@ import { Sparkles } from 'lucide-react'
 import { ScrollArea, ScrollBar } from './scroll-area'
 import { Link } from '@tanstack/react-router'
 import { Card } from './card'
-import type { ICategoryTreeNode } from '@/types'
+import type { ICategory } from '@/types'
 
 interface CategoryProps {
-  categories: ICategoryTreeNode[]
+  categories: ICategory[]
 }
 
 const CategoriesCarousel = ({ categories }: CategoryProps) => {

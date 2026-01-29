@@ -3,13 +3,10 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { 
   ICart, 
   ICartItem, 
-  IAddToCartPayload, 
   ObjectId,
   FrontendSafe, 
   IVariantOptions
 } from '@/types';
-import { useAddToCart, useUpdateCartItem, useRemoveFromCart, useClearCart, useCart } from '@/api/cart.query';
-import { useAuth } from '@/hooks';
 
 // Local cart storage key
 const LOCAL_CART_STORAGE_KEY = 'fashionket-local-cart';
@@ -21,7 +18,7 @@ interface LocalCart {
 
 interface CartState {
   // Local cart state (for unauthenticated users)
-  localCart: ICart;
+  localCart: LocalCart;
   
   // Server cart state (for authenticated users)
   serverCart: FrontendSafe<ICart> | null;
@@ -29,27 +26,28 @@ interface CartState {
   // Loading states
   isLoading: boolean;
   isSyncing: boolean;
+  error: string | null;
   
   // Actions
-  addToCart: (payload: {
+  addToLocalCart: (payload: {
     productId: string;
     productName: string;
     productPrice: number;
     productImage?: string;
     quantity: number;
     variantOptions?: IVariantOptions;
-  }) => Promise<void>;
+  }) => void;
   
-  updateCartItem: (payload: {
+  updateLocalCartItem: (payload: {
     productId: string;
     quantity: number;
-  }) => Promise<void>;
+  }) => void;
   
-  removeFromCart: (productId: string) => Promise<void>;
+  removeFromLocalCart: (productId: string) => void;
   
-  clearCart: () => Promise<void>;
+  clearLocalCart: () => void;
   
-  getCartSummary: () => {
+  getCartSummary: (isAuthenticated: boolean) => {
     itemCount: number;
     subtotal: number;
     items: Array<{
@@ -62,15 +60,17 @@ interface CartState {
     }>;
   };
   
-  syncCartWithServer: () => Promise<void>;
+  // Internal state setters
+  setServerCart: (cart: FrontendSafe<ICart> | null) => void;
+  setLoading: (loading: boolean) => void;
+  setSyncing: (syncing: boolean) => void;
+  setError: (error: string | null) => void;
   
-  // Internal actions
-  _setServerCart: (cart: FrontendSafe<ICart> | null) => void;
-  _setLoading: (loading: boolean) => void;
-  _setSyncing: (syncing: boolean) => void;
+  // Reset store
+  reset: () => void;
 }
 
-// Helper functions
+// Helper function to create local cart item
 const createLocalCartItem = (
   productId: string,
   productName: string,
@@ -79,7 +79,7 @@ const createLocalCartItem = (
   productImage?: string,
   variantOptions?: IVariantOptions
 ): ICartItem => ({
-  productId,
+  productId: productId as ObjectId,
   nameSnapshot: productName,
   priceSnapshot: productPrice,
   quantity,
@@ -87,242 +87,116 @@ const createLocalCartItem = (
   variantOptions,
 });
 
-const mergeCarts = (
-  localCart: LocalCart,
-  serverCart: FrontendSafe<ICart>
-): IAddToCartPayload[] => {
-  const mergePayloads: IAddToCartPayload[] = [];
-  const serverItemsMap = new Map(
-    serverCart.items.map(item => [item.productId.toString(), item.quantity])
-  );
-
-  // For each item in local cart, check if it exists in server cart
-  localCart.items.forEach(localItem => {
-    const serverQuantity = serverItemsMap.get(localItem.productId);
-    
-    if (serverQuantity) {
-      // Item exists in both carts, update to combined quantity
-      if (localItem.quantity !== serverQuantity) {
-        mergePayloads.push({
-          productId: localItem.productId as ObjectId,
-          quantity: localItem.quantity + serverQuantity,
-        });
-      }
-    } else {
-      // Item only exists in local cart, add it
-      mergePayloads.push({
-        productId: localItem.productId as ObjectId,
-        quantity: localItem.quantity,
-      });
-    }
-  });
-
-  return mergePayloads;
+const initialState = {
+  localCart: {
+    items: [],
+    updatedAt: new Date().toISOString(),
+  },
+  serverCart: null,
+  isLoading: false,
+  isSyncing: false,
+  error: null,
 };
 
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
-      // Initial state
-      localCart: {
-        items: [],
-        updatedAt: new Date().toISOString(),
-      },
-      serverCart: null,
-      isLoading: false,
-      isSyncing: false,
+      ...initialState,
 
-      // Actions
-      addToCart: async (payload) => {
-        const { isAuthenticated } = useAuth();
-        const { localCart, serverCart } = get();
+      // Local cart actions (no API calls here - keep pure)
+      addToLocalCart: (payload) => {
+        const { localCart } = get();
+        const existingItemIndex = localCart.items.findIndex(
+          item => item.productId === payload.productId
+        );
+
+        let updatedItems: ICartItem[];
         
-        if (isAuthenticated && serverCart) {
-          // Authenticated user - add to server
-          try {
-            set({ isLoading: true });
-            const { mutateAsync: addToCartMutation } = useAddToCart();
-            await addToCartMutation({
-              productId: payload.productId as ObjectId,
-              quantity: payload.quantity,
-            });
-            
-            // Fetch updated cart from server
-            const { refetch } = useCart();
-            const { data } = await refetch();
-            set({ 
-              serverCart: data || null,
-              isLoading: false 
-            });
-          } catch (error) {
-            console.error('Failed to add item to server cart:', error);
-            set({ isLoading: false });
-            throw error;
-          }
+        if (existingItemIndex >= 0) {
+          // Update existing item quantity
+          updatedItems = [...localCart.items];
+          updatedItems[existingItemIndex] = {
+            ...updatedItems[existingItemIndex],
+            quantity: updatedItems[existingItemIndex].quantity + payload.quantity,
+          };
         } else {
-          // Unauthenticated user - add to local storage
-          const existingItemIndex = localCart.items.findIndex(
-            item => item.productId === payload.productId
+          // Add new item
+          const newItem = createLocalCartItem(
+            payload.productId,
+            payload.productName,
+            payload.productPrice,
+            payload.quantity,
+            payload.productImage,
+            payload.variantOptions
           );
+          updatedItems = [...localCart.items, newItem];
+        }
 
-          let updatedItems: ICartItem[];
+        set({
+          localCart: {
+            items: updatedItems,
+            updatedAt: new Date().toISOString(),
+          },
+          error: null,
+        });
+      },
+
+      updateLocalCartItem: (payload) => {
+        const { localCart } = get();
+        const existingItemIndex = localCart.items.findIndex(
+          item => item.productId === payload.productId
+        );
+
+        if (existingItemIndex >= 0) {
+          const updatedItems = [...localCart.items];
           
-          if (existingItemIndex >= 0) {
-            // Update existing item quantity
-            updatedItems = [...localCart.items];
+          if (payload.quantity <= 0) {
+            // Remove item if quantity is 0 or less
+            updatedItems.splice(existingItemIndex, 1);
+          } else {
+            // Update quantity
             updatedItems[existingItemIndex] = {
               ...updatedItems[existingItemIndex],
-              quantity: updatedItems[existingItemIndex].quantity + payload.quantity,
-            };
-          } else {
-            // Add new item
-            const newItem = createLocalCartItem(
-              payload.productId,
-              payload.productName,
-              payload.productPrice,
-              payload.quantity,
-              payload.productImage,
-              payload.variantOptions
-            );
-            console.log(newItem)
-            updatedItems = [...localCart.items, newItem];
-          }
-
-          set({
-            localCart: {
-              items: updatedItems,
-              updatedAt: new Date().toISOString(),
-            },
-          });
-        }
-      },
-
-      updateCartItem: async (payload) => {
-        const { isAuthenticated } = useAuth();
-        const { localCart, serverCart } = get();
-        
-        if (isAuthenticated && serverCart) {
-          // Authenticated user - update on server
-          try {
-            set({ isLoading: true });
-            const { mutateAsync: updateCartItemMutation } = useUpdateCartItem();
-            await updateCartItemMutation({
-              productId: payload.productId as ObjectId,
               quantity: payload.quantity,
-            });
-            
-            // Fetch updated cart from server
-            const { refetch } = useCart();
-            const { data } = await refetch();
-            set({ 
-              serverCart: data || null,
-              isLoading: false 
-            });
-          } catch (error) {
-            console.error('Failed to update cart item on server:', error);
-            set({ isLoading: false });
-            throw error;
+            };
           }
-        } else {
-          // Unauthenticated user - update in local storage
-          const existingItemIndex = localCart.items.findIndex(
-            item => item.productId === payload.productId
-          );
-
-          if (existingItemIndex >= 0) {
-            const updatedItems = [...localCart.items];
-            
-            if (payload.quantity <= 0) {
-              // Remove item if quantity is 0 or less
-              updatedItems.splice(existingItemIndex, 1);
-            } else {
-              // Update quantity
-              updatedItems[existingItemIndex] = {
-                ...updatedItems[existingItemIndex],
-                quantity: payload.quantity,
-              };
-            }
-
-            set({
-              localCart: {
-                items: updatedItems,
-                updatedAt: new Date().toISOString(),
-              },
-            });
-          }
-        }
-      },
-
-      removeFromCart: async (productId) => {
-        const { isAuthenticated } = useAuth();
-        const { localCart, serverCart } = get();
-        
-        if (isAuthenticated && serverCart) {
-          // Authenticated user - remove from server
-          try {
-            set({ isLoading: true });
-            const { mutateAsync: removeFromCartMutation } = useRemoveFromCart();
-            await removeFromCartMutation(productId);
-            
-            // Fetch updated cart from server
-            const { refetch } = useCart();
-            const { data } = await refetch();
-            set({ 
-              serverCart: data || null,
-              isLoading: false 
-            });
-          } catch (error) {
-            console.error('Failed to remove item from server cart:', error);
-            set({ isLoading: false });
-            throw error;
-          }
-        } else {
-          // Unauthenticated user - remove from local storage
-          const updatedItems = localCart.items.filter(
-            item => item.productId !== productId
-          );
 
           set({
             localCart: {
               items: updatedItems,
               updatedAt: new Date().toISOString(),
             },
+            error: null,
           });
         }
       },
 
-      clearCart: async () => {
-        const { isAuthenticated } = useAuth();
-        
-        if (isAuthenticated) {
-          // Authenticated user - clear server cart
-          try {
-            set({ isLoading: true });
-            const { mutateAsync: clearCartMutation } = useClearCart();
-            await clearCartMutation();
-            
-            set({ 
-              serverCart: null,
-              isLoading: false 
-            });
-          } catch (error) {
-            console.error('Failed to clear server cart:', error);
-            set({ isLoading: false });
-            throw error;
-          }
-        }
-        
-        // Always clear local cart
+      removeFromLocalCart: (productId) => {
+        const { localCart } = get();
+        const updatedItems = localCart.items.filter(
+          item => item.productId !== productId
+        );
+
+        set({
+          localCart: {
+            items: updatedItems,
+            updatedAt: new Date().toISOString(),
+          },
+          error: null,
+        });
+      },
+
+      clearLocalCart: () => {
         set({
           localCart: {
             items: [],
             updatedAt: new Date().toISOString(),
           },
+          error: null,
         });
       },
 
-      getCartSummary: () => {
-        const { isAuthenticated } = useAuth();
+      getCartSummary: (isAuthenticated) => {
         const { localCart, serverCart } = get();
         
         if (isAuthenticated && serverCart) {
@@ -333,6 +207,7 @@ export const useCartStore = create<CartState>()(
             priceSnapshot: item.priceSnapshot,
             quantity: item.quantity,
             variantOptions: item.variantOptions,
+            productImage: item.productImage,
           }));
           
           return {
@@ -346,7 +221,7 @@ export const useCartStore = create<CartState>()(
         } else {
           // Use local cart for unauthenticated users
           const items = localCart.items.map(item => ({
-            productId: item.productId,
+            productId: item.productId.toString(),
             nameSnapshot: item.nameSnapshot,
             priceSnapshot: item.priceSnapshot,
             quantity: item.quantity,
@@ -365,83 +240,25 @@ export const useCartStore = create<CartState>()(
         }
       },
 
-      syncCartWithServer: async () => {
-        const { isAuthenticated } = useAuth();
-        const { localCart } = get();
-        
-        if (!isAuthenticated || localCart.items.length === 0) {
-          return;
-        }
-
-        try {
-          set({ isSyncing: true });
-          
-          // Fetch current server cart
-          const { data: serverCartData } = await useCart().refetch();
-          
-          if (serverCartData) {
-            // Merge local cart with server cart
-            const mergePayloads = mergeCarts(localCart, serverCartData);
-            
-            if (mergePayloads.length > 0) {
-              const { mutateAsync: addToCartMutation } = useAddToCart();
-              
-              // Add all merged items to server
-              for (const payload of mergePayloads) {
-                await addToCartMutation(payload);
-              }
-            }
-            
-            // Fetch updated cart
-            const { data: updatedCart } = await useCart().refetch();
-            set({ 
-              serverCart: updatedCart || null,
-              localCart: {
-                items: [],
-                updatedAt: new Date().toISOString(),
-              },
-              isSyncing: false,
-            });
-          } else {
-            // No existing server cart, create new one with all local items
-            const { mutateAsync: addToCartMutation } = useAddToCart();
-            
-            for (const localItem of localCart.items) {
-              await addToCartMutation({
-                productId: localItem.productId as ObjectId,
-                quantity: localItem.quantity,
-              });
-            }
-            
-            // Fetch new cart
-            const { data: newCart } = await useCart().refetch();
-            set({ 
-              serverCart: newCart || null,
-              localCart: {
-                items: [],
-                updatedAt: new Date().toISOString(),
-              },
-              isSyncing: false,
-            });
-          }
-        } catch (error) {
-          console.error('Failed to sync cart with server:', error);
-          set({ isSyncing: false });
-          throw error;
-        }
-      },
-
-      // Internal actions
-      _setServerCart: (cart) => {
-        set({ serverCart: cart });
+      // Internal state setters
+      setServerCart: (cart) => {
+        set({ serverCart: cart, error: null });
       },
       
-      _setLoading: (loading) => {
+      setLoading: (loading) => {
         set({ isLoading: loading });
       },
       
-      _setSyncing: (syncing) => {
+      setSyncing: (syncing) => {
         set({ isSyncing: syncing });
+      },
+      
+      setError: (error) => {
+        set({ error });
+      },
+      
+      reset: () => {
+        set(initialState);
       },
     }),
     {
@@ -450,10 +267,6 @@ export const useCartStore = create<CartState>()(
       partialize: (state) => ({
         localCart: state.localCart,
       }),
-      // // Only persist local cart, not server cart or loading states
-      // partializeState: (state) => ({
-      //   localCart: state.localCart,
-      // }),
       onRehydrateStorage: () => {
         return (state, error) => {
           if (error) {

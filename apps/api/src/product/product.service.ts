@@ -10,12 +10,14 @@ import { CreateProductDto, UpdateProductDto, QueryProductDto } from './dto';
 import type { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 import { Product, ProductDocument } from 'src/models/product.shcema';
 import slugify from 'slugify';
+import { Category, CategoryDocument } from 'src/models/category.schma';
 
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
+    @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>
   ) { }
 
   async create(
@@ -45,7 +47,11 @@ export class ProductService {
       createdBy: new Types.ObjectId(user.auth_id),
     });
 
-    return this.toDetailEntity(product);
+    return {
+      success: true,
+      message: 'success',
+      data: this.toDetailEntity(product)
+    }
   }
 
 
@@ -54,7 +60,7 @@ export class ProductService {
       page = 1,
       limit = 10,
       search,
-      categoryId,
+      categorySlug,
       brand,
       tags,
       sortBy = 'createdAt',
@@ -72,8 +78,11 @@ export class ProductService {
     }
 
     // Category filter
-    if (categoryId) {
-      filter.categoryId = new Types.ObjectId(categoryId);
+    if (categorySlug) {
+      const category = await this.categoryModel.findOne({ slug: categorySlug })
+      if (category) {
+        filter.categoryId = category._id.toString()
+      }
     }
 
     // Brand filter
@@ -120,13 +129,17 @@ export class ProductService {
     ]);
 
     return {
-      data: products.map((p) => this.toListEntity(p)),
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
+      success: true,
+      message: 'success',
+      data: {
+        data: products.map((p) => this.toListEntity(p)),
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        }
+      }
     };
   }
 
@@ -151,7 +164,11 @@ export class ProductService {
       .exec()
       .catch((err) => console.error('View count update error:', err));
 
-    return this.toDetailEntity(product);
+    return {
+      success: true,
+      message: 'success',
+      data: this.toDetailEntity(product)
+    }
   }
 
   async update(
@@ -196,7 +213,11 @@ export class ProductService {
 
     await product.save();
 
-    return this.toDetailEntity(product);
+    return {
+      success: true,
+      message: 'success',
+      data: this.toDetailEntity(product)
+    };
   }
 
 
@@ -221,7 +242,7 @@ export class ProductService {
 
     await product.deleteOne();
 
-    return { message: 'Product deleted successfully' };
+    return { success: true, message: 'Product deleted successfully' };
   }
 
   async softDelete(id: string, user: JwtPayload) {
@@ -246,7 +267,7 @@ export class ProductService {
     product.isActive = false;
     await product.save();
 
-    return { message: 'Product deactivated successfully' };
+    return { success: true, message: 'Product deactivated successfully' };
   }
 
   async updateStock(id: string, quantity: number, user: JwtPayload) {
@@ -263,7 +284,7 @@ export class ProductService {
     product.stock = quantity;
     await product.save();
 
-    return { message: 'Stock updated successfully', product };
+    return { success: true, message: 'Stock updated successfully', data: product };
   }
 
   // Helper methods

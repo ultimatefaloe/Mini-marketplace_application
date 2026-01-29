@@ -29,6 +29,6 @@ export interface IPaginationMeta {
  * Paginated response wrapper
  */
 export interface IPaginatedResponse<T> {
-  data: T[];
+  data: T;
   pagination: IPaginationMeta;
 }

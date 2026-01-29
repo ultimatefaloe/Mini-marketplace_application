@@ -40,8 +40,8 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAuth } from '@/hooks'
-import { CartIcon } from '../ui/cart-icon'
-import { useLogout } from '@/api'
+import { CartIcon } from '../../cart'
+import { useLogout } from '@/api/queries'
 
 // Navigation links configuration
 const navLinks = [

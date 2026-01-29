@@ -8,7 +8,7 @@ import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
 import type { IPaginationMeta } from '@/types';
 
 interface PaginationProps {
-  meta: IPaginationMeta;
+  meta: IPaginationMeta | undefined ;
   onPageChange: (page: number) => void;
   className?: string;
   showInfo?: boolean;
@@ -22,7 +22,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   showInfo = true,
   showPageSize = false,
 }) => {
-  const { page, totalPages, total, limit } = meta;
+  const { page, totalPages, total, limit } = meta!;
   const maxVisiblePages = 5;
 
   const getPageNumbers = () => {

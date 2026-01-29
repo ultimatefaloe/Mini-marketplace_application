@@ -2,7 +2,7 @@ import React from 'react'
 import { Link } from '@tanstack/react-router'
 import { ShoppingBag } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useCart } from '@/hooks/use-cart'
+import { useCart } from '@/hooks'
 
 interface CartIconProps {
   className?: string

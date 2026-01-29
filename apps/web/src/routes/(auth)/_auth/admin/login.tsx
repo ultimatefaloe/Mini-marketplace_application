@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useAdminLogin } from '@/api/auth.query';
+import { useAdminLogin } from '@/api/queries/auth.query';
 import { useAuth } from '@/hooks';
 import { AuthFormWrapper, GoogleAuthButton } from '@/components/auth';
 import { Eye, EyeOff, Building2 } from 'lucide-react';

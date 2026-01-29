@@ -14,6 +14,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 import { OrderService } from './orders.service';
+import { AppRole } from 'src/type';
 
 @Controller('orders')
 export class OrderController {
@@ -34,7 +35,7 @@ export class OrderController {
   }
 
   @Get('stats')
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @Roles(AppRole.ADMIN, AppRole.SUPER_ADMIN)
   getStats(@Query('userId') userId?: string) {
     return this.orderService.getOrderStats(userId);
   }
@@ -53,7 +54,7 @@ export class OrderController {
   }
 
   @Patch(':id/status')
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @Roles(AppRole.ADMIN, AppRole.SUPER_ADMIN)
   updateStatus(
     @Param('id') id: string,
     @Body() updateStatusDto: UpdateOrderStatusDto,

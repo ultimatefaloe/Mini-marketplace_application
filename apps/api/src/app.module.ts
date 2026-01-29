@@ -15,6 +15,7 @@ import { UploadModule } from './upload/upload.module';
 import { OrderModule } from './orders/orders.module';
 import { CartsModule } from './carts/carts.module';
 import { PaymentModule } from './payments/payments.module';
+import { JwtRefreshGuard } from './auth/guards';
 
 @Module({
   imports: [
@@ -40,8 +41,8 @@ import { PaymentModule } from './payments/payments.module';
   providers: [
     {
       provide: APP_GUARD,
-      useClass: RolesGuard,
-    },
+      useClass: JwtAuthGuard,
+    }
   ],
 })
 export class AppModule implements OnModuleInit {

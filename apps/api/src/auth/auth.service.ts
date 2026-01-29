@@ -15,11 +15,11 @@ import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { User, UserDocument } from 'src/models/user.schema';
 import { Admin, AdminDocument } from 'src/models/admin.schema';
 import { NotificationService } from 'src/notifications/notification.service';
-import { AppRolesEnum, AppRoles } from 'src/type/role';
+import { AppRole } from 'src/type/role';
 
 @Injectable()
 export class AuthService {
-  private resetTokens = new Map<string, { email: string; type: AppRoles; exp: number }>();
+  private resetTokens = new Map<string, { email: string; type: AppRole; exp: number }>();
 
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
@@ -46,7 +46,7 @@ export class AuthService {
       isActive: true
     });
 
-    const payload = this.parseUserToJwtPayload(user, AppRolesEnum.USER);
+    const payload = this.parseUserToJwtPayload(user, AppRole.USER);
     return this.generateTokens(payload);
   }
 
@@ -63,7 +63,7 @@ export class AuthService {
     if (!isValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    const payload = this.parseUserToJwtPayload(user, AppRolesEnum.USER);
+    const payload = this.parseUserToJwtPayload(user, AppRole.USER);
 
     return this.generateTokens(payload);
   }
@@ -86,7 +86,7 @@ export class AuthService {
       permissions: dto.permissions || {},
     });
 
-    const payload = this.parseUserToJwtPayload(admin, AppRolesEnum.ADMIN);
+    const payload = this.parseUserToJwtPayload(admin, AppRole.ADMIN);
 
     return this.generateTokens(payload);
   }
@@ -104,14 +104,14 @@ export class AuthService {
     if (!isValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    const payload = this.parseUserToJwtPayload(admin, AppRolesEnum.ADMIN);
+    const payload = this.parseUserToJwtPayload(admin, AppRole.ADMIN);
 
     return this.generateTokens(payload);
   }
 
   // ========== GOOGLE AUTH ==========
-  async googleAuth(googleUser: any, type: AppRolesEnum) {
-    const Model = (type === AppRolesEnum.USER ? this.userModel : this.adminModel) as Model<UserDocument | AdminDocument>;
+  async googleAuth(googleUser: any, type: AppRole) {
+    const Model = (type === AppRole.USER ? this.userModel : this.adminModel) as Model<UserDocument | AdminDocument>;
     let account = await Model.findOne({ email: googleUser.email });
 
     if (!account) {
@@ -131,15 +131,15 @@ export class AuthService {
       await account.save();
     }
 
-    const role = type === AppRolesEnum.ADMIN ? (account as any).role : AppRolesEnum.USER;
+    const role = type === AppRole.ADMIN ? (account as any).role : AppRole.USER;
     const payload = this.parseUserToJwtPayload(account, role);
 
     return this.generateTokens(payload);
   }
 
   // ========== PASSWORD RESET ==========
-  async requestPasswordReset(dto: RequestResetDto, type: AppRoles) {
-    const Model = (type === AppRolesEnum.USER ? this.userModel : this.adminModel) as Model<UserDocument | AdminDocument>;
+  async requestPasswordReset(dto: RequestResetDto, type: AppRole) {
+    const Model = (type === AppRole.USER ? this.userModel : this.adminModel) as Model<UserDocument | AdminDocument>;
     const account = await Model.findOne({ email: dto.email, isActive: true });
 
     if (!account) {
@@ -174,7 +174,7 @@ export class AuthService {
       throw new BadRequestException('Invalid or expired token');
     }
 
-    const Model = (tokenData.type === AppRolesEnum.USER ? this.userModel : this.adminModel) as Model<UserDocument | AdminDocument>;
+    const Model = (tokenData.type === AppRole.USER ? this.userModel : this.adminModel) as Model<UserDocument | AdminDocument>;
     const account = await Model.findOne({ email: tokenData.email });
 
     if (!account) {
@@ -193,7 +193,7 @@ export class AuthService {
 
   private parseUserToJwtPayload(
     user: any,
-    role: AppRolesEnum
+    role: AppRole
   ): JwtPayload {
     // Convert mongoose document → plain object safely
     const plainUser = typeof user.toObject === 'function'

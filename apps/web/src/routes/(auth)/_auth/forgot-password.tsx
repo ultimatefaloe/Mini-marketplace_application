@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useRequestPasswordReset } from '@/api/auth.query';
+import { useRequestPasswordReset } from '@/api/queries/auth.query';
 import { AuthFormWrapper } from '@/components/auth';
 import { CheckCircle } from 'lucide-react';
 import { z } from 'zod';

@@ -76,8 +76,9 @@ export class CartsService {
     }
 
     return {
+      success: true,
       message: 'Item added to cart',
-      cartItemCount: cart.items.reduce((sum, item) => sum + item.quantity, 0)
+      data: cart.items.reduce((sum, item) => sum + item.quantity, 0)
     };
   }
 
@@ -114,10 +115,13 @@ export class CartsService {
     const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
     return {
-      items,
-      subtotal,
-      totalItems,
-      isEmpty: items.length === 0
+      success: true,
+      data: {
+        items,
+        subtotal,
+        totalItems,
+        isEmpty: items.length === 0
+      }
     };
   }
 
@@ -168,8 +172,9 @@ export class CartsService {
     await cart.save();
 
     return {
+      success: true,
       message: updateDto.quantity === 0 ? 'Item removed from cart' : 'Cart updated',
-      cartItemCount: cart.items.reduce((sum, item) => sum + item.quantity, 0)
+      data: cart.items.reduce((sum, item) => sum + item.quantity, 0)
     };
   }
 
@@ -196,8 +201,9 @@ export class CartsService {
     await cart.save();
 
     return {
+      success: true,
       message: 'Item removed from cart',
-      cartItemCount: cart.items.reduce((sum, item) => sum + item.quantity, 0)
+      data: cart.items.reduce((sum, item) => sum + item.quantity, 0)
     };
   }
 
@@ -211,7 +217,7 @@ export class CartsService {
     cart.items = [];
     await cart.save();
 
-    return { message: 'Cart cleared' };
+    return { success: true, message: 'Cart cleared' };
   }
 
   async syncCartPrices(user: JwtPayload) {
@@ -249,8 +255,9 @@ export class CartsService {
     await cart.save();
 
     return {
+      success: true,
       message: `Cart synced. ${updated} items updated.`,
-      itemsRemoved: productIds.length - cart.items.length
+      data: productIds.length - cart.items.length
     };
   }
 }
