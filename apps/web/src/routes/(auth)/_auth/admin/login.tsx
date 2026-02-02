@@ -1,35 +1,38 @@
-import React from 'react';
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useAdminLogin } from '@/api/queries/auth.query';
-import { useAuth } from '@/hooks';
-import { AuthFormWrapper, GoogleAuthButton } from '@/components/auth';
-import { Eye, EyeOff, Building2 } from 'lucide-react';
-import { toast } from 'react-toastify';
+import React from 'react'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
+import { useAdminLogin } from '@/api/queries/auth.query'
+import { useAuth } from '@/hooks'
+import { AuthFormWrapper, GoogleAuthButton } from '@/components/auth'
+import { Eye, EyeOff, Building2 } from 'lucide-react'
+import { toast } from 'react-toastify'
 
 const adminLoginSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(1, 'Password is required'),
   rememberMe: z.boolean().optional(),
-});
+})
 
-type AdminLoginFormData = z.infer<typeof adminLoginSchema>;
+type AdminLoginFormData = z.infer<typeof adminLoginSchema>
 
 export const Route = createFileRoute('/(auth)/_auth/admin/login')({
   component: AdminLoginPage,
-});
+  validateSearch: z.object({
+    redirect: z.string().optional(),
+  }),
+})
 
 function AdminLoginPage() {
-  const navigate = useNavigate();
-  const [showPassword, setShowPassword] = React.useState(false);
-  const { mutate: login, isPending } = useAdminLogin();
-  const { setAuth } = useAuth();
+  const navigate = useNavigate()
+  const [showPassword, setShowPassword] = React.useState(false)
+  const { mutate: login, isPending } = useAdminLogin()
+  const { setAuth } = useAuth()
 
   const {
     register,
@@ -41,29 +44,29 @@ function AdminLoginPage() {
     defaultValues: {
       rememberMe: false,
     },
-  });
+  })
 
   const onSubmit = async (data: AdminLoginFormData) => {
     try {
       await login(data, {
         onSuccess: (response) => {
-          if (response.admin) {
-            setAuth(response.admin);
-            toast.success('Welcome back!, Successfully logged in as admin.');
-            navigate({ to: '/admin' });
+          if (response.data) {
+            setAuth(response.data)
+            toast.success('Welcome back!, Successfully logged in as admin.')
+            navigate({ to: '/admin' })
           }
         },
         onError: (error: any) => {
-          toast.error(error.message || 'Login failed, Invalid credentials');
+          toast.error(error.message || 'Login failed, Invalid credentials')
         },
-      });
+      })
     } catch (error: any) {
       setError('root', {
         type: 'manual',
         message: error.message || 'Admin login failed. Please try again.',
-      });
+      })
     }
-  };
+  }
 
   const footer = (
     <div className="text-center space-y-3">
@@ -94,7 +97,7 @@ function AdminLoginPage() {
         </Link>
       </div>
     </div>
-  );
+  )
 
   return (
     <AuthFormWrapper
@@ -174,10 +177,7 @@ function AdminLoginPage() {
 
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Checkbox
-              id="rememberMe"
-              {...register('rememberMe')}
-            />
+            <Checkbox id="rememberMe" {...register('rememberMe')} />
             <Label
               htmlFor="rememberMe"
               className="text-sm font-normal text-gray-600 cursor-pointer"
@@ -215,5 +215,5 @@ function AdminLoginPage() {
 
       <GoogleAuthButton variant="admin" disabled={isPending} />
     </AuthFormWrapper>
-  );
+  )
 }

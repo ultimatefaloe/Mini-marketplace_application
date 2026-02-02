@@ -1,31 +1,25 @@
-import React, { useEffect, useCallback, useRef } from 'react';
-import { useCartStore } from '@/store/cart.store';
-import { useAuth } from '@/hooks';
-import { toast } from 'react-toastify';
-import { useAddToCart } from '@/api/mutations';
-import { useCart as useCartQuery } from '@/api/hooks';
-import type { ObjectId } from '@/types';
+import React, { useEffect, useCallback, useRef } from 'react'
+import { useCartStore } from '@/store/cart.store'
+import { useAuth } from '@/hooks'
+import { toast } from 'react-toastify'
+import { useAddToCart } from '@/api/mutations'
+import { useCart as useCartQuery } from '@/api/hooks'
 
 interface CartProviderProps {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const {
-    localCart,
-    setServerCart,
-    setSyncing,
-    clearLocalCart,
-    setError,
-  } = useCartStore();
+  const { isAuthenticated, isLoading: authLoading } = useAuth()
+  const { localCart, setServerCart, setSyncing, clearLocalCart, setError } =
+    useCartStore()
 
-  const addToCartMutation = useAddToCart();
-  const { data: serverCartData, refetch: refetchServerCart } = useCartQuery();
+  const addToCartMutation = useAddToCart()
+  const { data: serverCartData, refetch: refetchServerCart } = useCartQuery()
 
   // Track if sync has been completed to avoid duplicate syncs
-  const hasSyncedRef = useRef(false);
-  const isSyncingRef = useRef(false);
+  const hasSyncedRef = useRef(false)
+  const isSyncingRef = useRef(false)
 
   /**
    * Sync local cart with server
@@ -36,40 +30,39 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       localCart.items.length === 0 ||
       isSyncingRef.current
     ) {
-      return;
+      return
     }
 
-    isSyncingRef.current = true;
-    setSyncing(true);
+    isSyncingRef.current = true
+    setSyncing(true)
 
     try {
       // Add all local items to server cart
       for (const localItem of localCart.items) {
         await addToCartMutation.mutateAsync({
-          productId: localItem.productId as ObjectId,
-          quantity: localItem.quantity,
-        });
+          items: [localItem],
+        })
       }
 
       // Fetch updated cart
-      await refetchServerCart();
+      await refetchServerCart()
 
       // Clear local cart after successful sync
-      clearLocalCart();
-      hasSyncedRef.current = true;
+      clearLocalCart()
+      hasSyncedRef.current = true
 
-      toast.success('Your cart has been synchronized');
+      toast.success('Your cart has been synchronized')
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : 'Failed to sync cart';
-      setError(errorMessage);
-      console.error('Cart sync error:', error);
+        error instanceof Error ? error.message : 'Failed to sync cart'
+      setError(errorMessage)
+      console.error('Cart sync error:', error)
 
       // Show error but don't clear local cart
-      toast.error('Could not sync cart. Items remain in local storage.');
+      toast.error('Could not sync cart. Items remain in local storage.')
     } finally {
-      setSyncing(false);
-      isSyncingRef.current = false;
+      setSyncing(false)
+      isSyncingRef.current = false
     }
   }, [
     isAuthenticated,
@@ -79,7 +72,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     clearLocalCart,
     setSyncing,
     setError,
-  ]);
+  ])
 
   /**
    * Sync cart when user logs in
@@ -89,31 +82,31 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       isAuthenticated &&
       !authLoading &&
       localCart.items.length > 0 &&
-      !hasSyncedRef.current;
+      !hasSyncedRef.current
 
     if (shouldSync) {
-      syncCartWithServer();
+      syncCartWithServer()
     }
-  }, [isAuthenticated, authLoading, localCart.items.length, syncCartWithServer]);
+  }, [isAuthenticated, authLoading, localCart.items.length, syncCartWithServer])
 
   /**
    * Update server cart in store when fetched
    */
   useEffect(() => {
     if (isAuthenticated && serverCartData) {
-      setServerCart(serverCartData);
+      setServerCart(serverCartData)
     }
-  }, [isAuthenticated, serverCartData, setServerCart]);
+  }, [isAuthenticated, serverCartData, setServerCart])
 
   /**
    * Clear server cart on logout
    */
   useEffect(() => {
     if (!isAuthenticated) {
-      setServerCart(null);
-      hasSyncedRef.current = false;
+      setServerCart(null)
+      hasSyncedRef.current = false
     }
-  }, [isAuthenticated, setServerCart]);
+  }, [isAuthenticated, setServerCart])
 
   /**
    * Handle online/offline state
@@ -121,23 +114,23 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   useEffect(() => {
     const handleOnline = () => {
       if (isAuthenticated && localCart.items.length > 0) {
-        toast.info('Reconnected. Syncing cart...');
-        syncCartWithServer();
+        toast.info('Reconnected. Syncing cart...')
+        syncCartWithServer()
       }
-    };
+    }
 
     const handleOffline = () => {
-      toast.warning('You are offline. Cart changes will be saved locally.');
-    };
+      toast.warning('You are offline. Cart changes will be saved locally.')
+    }
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, [isAuthenticated, localCart.items.length, syncCartWithServer]);
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [isAuthenticated, localCart.items.length, syncCartWithServer])
 
   /**
    * Handle before unload - warn if cart sync is pending
@@ -145,18 +138,18 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isSyncingRef.current) {
-        e.preventDefault();
-        e.returnValue = 'Cart is syncing. Are you sure you want to leave?';
-        return e.returnValue;
+        e.preventDefault()
+        e.returnValue = 'Cart is syncing. Are you sure you want to leave?'
+        return e.returnValue
       }
-    };
+    }
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('beforeunload', handleBeforeUnload)
 
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, []);
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [])
 
-  return <>{children}</>;
-};
+  return <>{children}</>
+}

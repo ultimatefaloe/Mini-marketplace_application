@@ -1,5 +1,5 @@
 import React from 'react'
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
 import { ProductGrid, ProductListItem } from '@/components/ui/product-card'
 import { ProductFilters } from '@/components/ui/product-filters'

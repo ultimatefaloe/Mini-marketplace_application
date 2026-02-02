@@ -78,7 +78,8 @@ const createLocalCartItem = (
   productPrice: number,
   quantity: number,
   productImage?: string,
-  variantOptions?: IVariantOptions
+  variantOptions?: IVariantOptions,
+  _id?: string,
 ): ICartItem => ({
   productId: productId as ObjectId,
   nameSnapshot: productName,
@@ -86,6 +87,7 @@ const createLocalCartItem = (
   quantity,
   productImage,
   variantOptions,
+  _id: _id || ''
 });
 
 const initialState = {
@@ -270,7 +272,7 @@ export const useCartStore = create<CartState>()(
         localCart: state.localCart,
       }),
       onRehydrateStorage: () => {
-        return (state, error) => {
+        return (error) => {
           if (error) {
             console.error('Cart store rehydration error:', error);
           }

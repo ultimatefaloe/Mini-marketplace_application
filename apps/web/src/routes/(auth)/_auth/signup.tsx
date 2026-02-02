@@ -53,13 +53,13 @@ function SignupPage() {
 
   const password = watch('password');
 
-  const onSubmit = async (data: SignupFormData) => {
+  const onSubmit = (data: SignupFormData) => {
     try {
       const { confirmPassword, ...signupData } = data;
-      await signup(signupData, {
+       signup(signupData, {
         onSuccess: (response) => {
-          if (response.user) {
-            setAuth(response.user);
+          if (response.success) {
+            setAuth(response.data);
           }
         },
       });

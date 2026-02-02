@@ -21,6 +21,9 @@ type LoginFormData = z.infer<typeof loginSchema>
 
 export const Route = createFileRoute('/(auth)/_auth/login')({
   component: LoginPage,
+  validateSearch: z.object({
+    redirect: z.string().optional(),
+  }),
 })
 
 function LoginPage() {
@@ -43,14 +46,14 @@ function LoginPage() {
         onSuccess: (response) => {
           console.log(response)
           if (response.success) {
-            setAuth(response.data);
-            toast.success(response.message || 'Welcome back!');
-            navigate({ to: '/' });
+            setAuth(response.data)
+            toast.success(response.message || 'Welcome back!')
+            navigate({ to: '/' })
           }
         },
         onError: (error: any) => {
           console.error(error)
-          toast.error(error.message || 'Login failed, Invalid credentials');
+          toast.error(error.message || 'Login failed, Invalid credentials')
         },
       })
     } catch (error: any) {

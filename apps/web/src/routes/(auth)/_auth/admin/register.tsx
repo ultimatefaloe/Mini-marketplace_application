@@ -75,8 +75,8 @@ function AdminSignupPage() {
       const { confirmPassword, acceptTerms, requestPermissions, ...signupData } = data;
       await signup(signupData, {
         onSuccess: (response) => {
-          if (response.admin) {
-            setAuth(response.admin);
+          if (response.data) {
+            setAuth(response.data);
             toast.success('Account created successfully!');
             navigate({ to: '/admin' });
           }

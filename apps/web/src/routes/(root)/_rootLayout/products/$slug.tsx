@@ -3,7 +3,6 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { z } from 'zod'
 import { formatCurrency } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-// import { ProductCard } from '@/components/ui/product-card'
 import {
   Heart,
   Share2,
@@ -14,7 +13,6 @@ import {
   Minus,
   Plus,
   Check,
-  Eye,
 } from 'lucide-react'
 import { AddToCartButton } from '@/components/cart/add-to-cart-button'
 import { productBySlugQuery, relatedProductsQuery } from '@/api/queries'

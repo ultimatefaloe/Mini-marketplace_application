@@ -14,6 +14,7 @@ export const DEFAULT_PAGINATION = {
 } as const;
 
 export const ORDER_STATUS_FLOW: Record<OrderStatus, OrderStatus[]> = {
+  [OrderStatus.PENDING]: [OrderStatus.PENDING_PAYMENT, OrderStatus.PAID],
   [OrderStatus.PENDING_PAYMENT]: [OrderStatus.PAID, OrderStatus.CANCELLED],
   [OrderStatus.PAID]: [OrderStatus.PROCESSING, OrderStatus.CANCELLED],
   [OrderStatus.PROCESSING]: [OrderStatus.SHIPPED, OrderStatus.CANCELLED],

@@ -8,7 +8,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, X } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 import { CartItem } from './cart-item';
 import { CartSummary } from './cart-summary';
 import { useCart } from '@/hooks';

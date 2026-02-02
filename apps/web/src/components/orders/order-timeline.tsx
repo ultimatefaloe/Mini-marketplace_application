@@ -3,7 +3,6 @@ import { cn } from '@/lib/utils';
 import { OrderStatus, type IOrder } from '@/types';
 import { 
   CheckCircle, 
-  Clock, 
   CreditCard, 
   Package, 
   Truck, 
@@ -89,7 +88,7 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({ order }) => {
 
       {/* Timeline Steps */}
       <div className="relative space-y-8">
-        {timelineSteps.map((step, index) => {
+        {timelineSteps.map((step) => {
           const status = getStepStatus(step);
           const Icon = step.icon;
           

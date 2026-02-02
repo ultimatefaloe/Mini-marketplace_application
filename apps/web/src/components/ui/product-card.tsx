@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge'
 import {
   Star,
   Heart,
-  ShoppingBag,
   Zap,
   TrendingUp,
   CheckCircle,

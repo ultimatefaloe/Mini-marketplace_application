@@ -53,5 +53,7 @@ export interface IUpdateAdminPayload {
  * Admin login response
  */
 export interface IAdminAuthResponse {
+  success: boolean;
   message: string;
+  data: IAdmin
 }

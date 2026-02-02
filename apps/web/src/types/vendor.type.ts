@@ -63,5 +63,7 @@ export interface IUpdateVendorPayload {
  * Admin login response
  */
 export interface IVendorAuthResponse {
-  message: string;
+   success: boolean;
+    message: string;
+    data: IVendor
 }

@@ -1,5 +1,5 @@
 import React from 'react'
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -29,7 +29,6 @@ import {
 import { addressesQuery } from '@/api/queries'
 import {
   ArrowLeft,
-  CreditCard,
   Package,
   CheckCircle,
   Loader2,
