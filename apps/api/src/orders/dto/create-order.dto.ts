@@ -8,8 +8,10 @@ import {
   IsString,
   IsOptional,
   ArrayMinSize,
+  IsEnum,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { DeliveryMethod } from 'src/models/order.schema';
 
 export class OrderItemDto {
   @IsMongoId()
@@ -22,14 +24,6 @@ export class OrderItemDto {
 }
 
 export class ShippingAddressDto {
-  @IsString()
-  @IsNotEmpty()
-  fullName: string;
-
-  @IsString()
-  @IsNotEmpty()
-  phone: string;
-
   @IsString()
   @IsNotEmpty()
   addressLine1: string;
@@ -65,6 +59,14 @@ export class CreateOrderDto {
   @ValidateNested()
   @Type(() => ShippingAddressDto)
   shippingAddress: ShippingAddressDto;
+
+  @IsEnum(DeliveryMethod)
+  @IsNotEmpty()
+  deliveryMethod: DeliveryMethod;
+
+  @IsOptional()
+  @IsString()
+  addressId?: string;
 
   @IsOptional()
   @IsString()

@@ -9,28 +9,58 @@ import { Model, Types } from 'mongoose';
 import { CreateProductDto, UpdateProductDto, QueryProductDto } from './dto';
 import type { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 import { Product, ProductDocument } from 'src/models/product.shcema';
+import slugify from 'slugify';
+import { Category, CategoryDocument } from 'src/models/category.schma';
+
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
+    @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>
   ) { }
 
-  async create(createProductDto: CreateProductDto, images: string[], user: JwtPayload) {
+  async create(
+    createProductDto: CreateProductDto,
+    images: string[] = [],
+    user: JwtPayload,
+  ) {
+    // Generate base slug
+    const baseSlug = slugify(createProductDto.name, {
+      lower: true,
+      strict: true, // removes special characters
+      trim: true,
+    });
+
+    // Ensure slug uniqueness
+    let slug = baseSlug;
+    let count = 1;
+
+    while (await this.productModel.exists({ slug })) {
+      slug = `${baseSlug}-${count++}`;
+    }
+
     const product = await this.productModel.create({
       ...createProductDto,
       images,
+      slug,
       createdBy: new Types.ObjectId(user.auth_id),
     });
-    return this.toDetailEntity(product);
+
+    return {
+      success: true,
+      message: 'success',
+      data: this.toDetailEntity(product)
+    }
   }
+
 
   async findAll(query: QueryProductDto) {
     const {
       page = 1,
       limit = 10,
       search,
-      categoryId,
+      categorySlug,
       brand,
       tags,
       sortBy = 'createdAt',
@@ -48,8 +78,11 @@ export class ProductService {
     }
 
     // Category filter
-    if (categoryId) {
-      filter.categoryId = new Types.ObjectId(categoryId);
+    if (categorySlug) {
+      const category = await this.categoryModel.findOne({ slug: categorySlug })
+      if (category) {
+        filter.categoryId = category._id.toString()
+      }
     }
 
     // Brand filter
@@ -85,7 +118,7 @@ export class ProductService {
       this.productModel
         .find(filter)
         .select(
-          '_id name description categoryId brand price discount stock images isActive tags viewCount soldCount createdAt updatedAt',
+          '_id name description slug categoryId brand price discount stock images isActive tags viewCount soldCount createdAt updatedAt',
         )
         .sort(sort)
         .skip(skip)
@@ -96,17 +129,21 @@ export class ProductService {
     ]);
 
     return {
-      data: products.map((p) => this.toListEntity(p)),
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
+      success: true,
+      message: 'success',
+      data: {
+        data: products.map((p) => this.toListEntity(p)),
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        }
+      }
     };
   }
 
-  async findOne(id: string) {
+  async findOneById(id: string) {
     if (!Types.ObjectId.isValid(id)) {
       throw new BadRequestException('Invalid product ID');
     }
@@ -127,8 +164,66 @@ export class ProductService {
       .exec()
       .catch((err) => console.error('View count update error:', err));
 
-    return this.toDetailEntity(product);
+    return {
+      success: true,
+      message: 'success',
+      data: this.toDetailEntity(product)
+    }
   }
+
+  async findOneBySlug(slug: string) {
+
+    const product = await this.productModel
+      .findOne({ slug })
+      .populate('categoryId', 'name slug')
+      .lean()
+      .exec();
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    // Increment view count (fire and forget)
+    this.productModel
+      .findByIdAndUpdate(product.id, { $inc: { viewCount: 1 } })
+      .exec()
+      .catch((err) => console.error('View count update error:', err));
+
+    return {
+      success: true,
+      message: 'success',
+      data: this.toDetailEntity(product)
+    }
+  }
+
+  async findReleted(slug: string, limit: number) {
+
+    const product = await this.productModel
+      .findOne({ slug })
+      .select('categoryId')
+      .lean()
+      .exec();
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    const relatedProduct = await this.productModel
+      .find({ categoryId: product.categoryId.toString() })
+      .select(
+        '_id name description slug categoryId brand price discount stock images isActive tags viewCount soldCount createdAt updatedAt',
+      )
+      .limit(limit)
+      .lean()
+      .exec()
+
+    return {
+      success: true,
+      message: 'success',
+      data: relatedProduct.map(p => this.toListEntity(p))
+    }
+  }
+
 
   async update(
     id: string,
@@ -172,7 +267,11 @@ export class ProductService {
 
     await product.save();
 
-    return this.toDetailEntity(product);
+    return {
+      success: true,
+      message: 'success',
+      data: this.toDetailEntity(product)
+    };
   }
 
 
@@ -197,7 +296,7 @@ export class ProductService {
 
     await product.deleteOne();
 
-    return { message: 'Product deleted successfully' };
+    return { success: true, message: 'Product deleted successfully' };
   }
 
   async softDelete(id: string, user: JwtPayload) {
@@ -222,7 +321,7 @@ export class ProductService {
     product.isActive = false;
     await product.save();
 
-    return { message: 'Product deactivated successfully' };
+    return { success: true, message: 'Product deactivated successfully' };
   }
 
   async updateStock(id: string, quantity: number, user: JwtPayload) {
@@ -239,7 +338,7 @@ export class ProductService {
     product.stock = quantity;
     await product.save();
 
-    return { message: 'Stock updated successfully', product };
+    return { success: true, message: 'Stock updated successfully', data: product };
   }
 
   // Helper methods
@@ -247,6 +346,7 @@ export class ProductService {
     const {
       _id,
       name,
+      slug,
       description,
       categoryId,
       brand,
@@ -265,6 +365,7 @@ export class ProductService {
     return {
       _id,
       name,
+      slug,
       description,
       categoryId,
       brand,

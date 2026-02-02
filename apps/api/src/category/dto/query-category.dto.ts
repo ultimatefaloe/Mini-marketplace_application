@@ -7,16 +7,7 @@ export class QueryCategoryDto {
   search?: string;
 
   @IsOptional()
-  @IsMongoId()
-  parentId?: string;
-
-  @IsOptional()
   @Type(() => Boolean)
   @IsBoolean()
   isActive?: boolean;
-
-  @IsOptional()
-  @Type(() => Boolean)
-  @IsBoolean()
-  includeChildren?: boolean;
 }

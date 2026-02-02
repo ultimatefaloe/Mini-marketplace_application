@@ -25,13 +25,13 @@ import { PaymentService } from './payments.service';
 import type { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
 
 @Controller('payments')
+@UseGuards(JwtAuthGuard)
 export class PaymentController {
   private readonly logger = new Logger(PaymentController.name);
 
   constructor(private readonly paymentService: PaymentService) { }
 
   @Post('initialize')
-  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   async initializePayment(
     @Body() dto: InitializePaymentDto,
@@ -49,7 +49,6 @@ export class PaymentController {
   }
 
   @Get('verify/:reference')
-  @UseGuards(JwtAuthGuard)
   async verifyPayment(@Param() dto: VerifyPaymentDto) {
     this.logger.log(`Verifying payment: ${dto.reference}`);
 
@@ -92,19 +91,16 @@ export class PaymentController {
   }
 
   @Get('reference/:reference')
-  @UseGuards(JwtAuthGuard)
   async getPaymentByReference(@Param('reference') reference: string) {
     return await this.paymentService.getPaymentByReference(reference);
   }
 
   @Get('order/:orderId')
-  @UseGuards(JwtAuthGuard)
   async getPaymentsByOrder(@Param('orderId') orderId: string) {
     return await this.paymentService.getPaymentsByOrder(orderId);
   }
 
   @Get('history')
-  @UseGuards(JwtAuthGuard)
   async getPaymentHistory(
     @CurrentUser() user: JwtPayload,
     @Query('limit') limit?: number,

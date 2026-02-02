@@ -25,7 +25,7 @@ export class QueryProductDto {
 
   @IsOptional()
   @IsString()
-  categoryId?: string;
+  categorySlug?: string;
 
   @IsOptional()
   @IsString()

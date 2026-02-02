@@ -1,13 +1,26 @@
-import { Outlet, createRootRoute } from '@tanstack/react-router'
+import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
+import { AuthProvider } from '@/providers/auth-provider'
+import type { QueryClient } from '@tanstack/react-query'
+import { ToastContainer } from 'react-toastify'
+import "react-toastify/dist/ReactToastify.css"
 
-import Header from '../components/Header'
+export interface RouterContext {
+  queryClient: QueryClient
+}
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<RouterContext>()({
   component: () => (
-    <>
-      <Header />
+    <AuthProvider>
+      <ToastContainer
+        position="top-center"
+        autoClose={5000}
+        hideProgressBar={false}
+        closeOnClick
+        pauseOnHover
+        draggable
+      />
       <Outlet />
       <TanStackDevtools
         config={{
@@ -20,6 +33,6 @@ export const Route = createRootRoute({
           },
         ]}
       />
-    </>
+    </AuthProvider>
   ),
 })

@@ -4,7 +4,6 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
-import { RolesGuard } from './auth/guards/roles.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { InjectConnection } from '@nestjs/mongoose'; // Import the InjectConnection decorator
 import { Connection } from 'mongoose'; // Import the Connection type
@@ -15,6 +14,7 @@ import { UploadModule } from './upload/upload.module';
 import { OrderModule } from './orders/orders.module';
 import { CartsModule } from './carts/carts.module';
 import { PaymentModule } from './payments/payments.module';
+import { AddressModule } from './address/address.module';
 
 @Module({
   imports: [
@@ -35,17 +35,15 @@ import { PaymentModule } from './payments/payments.module';
     UploadModule,
     OrderModule,
     CartsModule,
-    PaymentModule
+    PaymentModule,
+    AddressModule
   ],
   providers: [
+    Logger,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: RolesGuard,
-    },
+    }
   ],
 })
 export class AppModule implements OnModuleInit {

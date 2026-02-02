@@ -1,16 +1,22 @@
 import { Injectable, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Reflector } from '@nestjs/core';
-import { TokenBlacklistService } from '../tokenBlackList.service';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import { IS_PUBLIC_KEY } from '../decorators';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  constructor(private reflector: Reflector, private tokenBlacklistService: TokenBlacklistService) {
+  constructor
+    (
+      private reflector: Reflector,
+      private readonly config: ConfigService,
+      private readonly jwt: JwtService) {
     super();
   }
 
   async canActivate(context: ExecutionContext) {
-    const isPublic = this.reflector.getAllAndOverride<boolean>('isPublic', [
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
@@ -31,13 +37,13 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       throw new UnauthorizedException('Access token not found');
     }
 
-    const isBlacklisted =
-      await this.tokenBlacklistService.isTokenBlacklisted(token);
+    const secret = this.config.getOrThrow<string>('JWT_SECRET')
 
-    if (isBlacklisted) {
-      throw new UnauthorizedException('Token has been revoked');
+    const validate = await this.jwt.verify(token, { secret })
+
+    if (!validate) {
+      throw new UnauthorizedException('Refresh token has been revoked');
     }
-
     req.token = token;
 
     return super.canActivate(context) as Promise<boolean>;

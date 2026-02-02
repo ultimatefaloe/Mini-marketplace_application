@@ -1,3 +1,5 @@
+import { DeliveryMethod } from './../models/order.schema';
+import { JwtPayload } from './../auth/interfaces/jwt-payload.interface';
 import {
   Injectable,
   NotFoundException,
@@ -7,11 +9,11 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { CreateOrderDto, UpdateOrderStatusDto, CancelOrderDto, QueryOrderDto } from './dto';
-import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
-import { AppRolesEnum } from 'src/type/role';
 import { Product, ProductDocument } from 'src/models/product.shcema';
-import { Order, OrderDocument, OrderStatus, OrderItemSchema } from 'src/models/order.schema';
+import { Order, OrderDocument, OrderStatus } from 'src/models/order.schema';
 import { Cart, CartDocument } from 'src/models/cart.schema';
+import { AppRole } from 'src/type';
+import { AddressService } from 'src/address/address.service';
 
 interface OrderItem {
   productId: Types.ObjectId;
@@ -26,11 +28,18 @@ export class OrderService {
   constructor(
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
-    @InjectModel(Cart.name) private cartModel: Model<CartDocument>
+    @InjectModel(Cart.name) private cartModel: Model<CartDocument>,
+    private addressService: AddressService
   ) { }
 
   async create(createOrderDto: CreateOrderDto, user: JwtPayload) {
     const orderItems: OrderItem[] = [];
+
+    let addressId: string = ''
+
+    if (createOrderDto.deliveryMethod === DeliveryMethod.DELIVERY && createOrderDto.addressId) {
+      addressId = createOrderDto.addressId
+    }
 
     // 1. Determine item source (cart first, fallback to DTO)
     const cart = await this.cartModel.findOne({ userId: user.auth_id }).lean();
@@ -88,9 +97,10 @@ export class OrderService {
     }
 
     // 4. Calculate totals
-    const shippingFee = this.calculateShipping(subtotalAmount);
+    const shippingFee = await this.addressService.calculateDeliveryFee(addressId, user)
     const discountAmount = 0;
-    const totalAmount = subtotalAmount + shippingFee - discountAmount;
+    const initTA = subtotalAmount +  shippingFee.totalDeliveryFee - discountAmount;
+    const totalAmount = this.calculateTax(initTA)
 
     // 5. Generate order number
     const orderNumber = await this.generateOrderNumber();
@@ -101,10 +111,11 @@ export class OrderService {
       orderNumber,
       items: orderItems,
       subtotalAmount,
-      shippingFee,
+      shippingFee: shippingFee.totalDeliveryFee,
       totalAmount,
       status: OrderStatus.PENDING_PAYMENT,
-      shippingAddress: createOrderDto.shippingAddress,
+      deliveryMethod: createOrderDto.deliveryMethod,
+      addressId,
       notes: createOrderDto.notes,
     });
 
@@ -119,7 +130,11 @@ export class OrderService {
       );
     }
 
-    return this.toDetailEntity(order);
+    return {
+      success: true,
+      message: 'Order place successfully',
+      data: this.toDetailEntity(order)
+    }
   }
 
 
@@ -137,7 +152,7 @@ export class OrderService {
     const filter: any = {};
 
     // Regular users can only see their own orders
-    if (user.role === 'user') {
+    if (user.role === AppRole.USER) {
       filter.userId = new Types.ObjectId(user.auth_id);
     } else if (userId) {
       // Admins can filter by userId
@@ -170,13 +185,17 @@ export class OrderService {
     ]);
 
     return {
-      data: orders.map((o) => this.toListEntity(o)),
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
+      success: true,
+      message: 'Orders retrieved successfully',
+      data: {
+        data: orders.map((o) => this.toListEntity(o)),
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        }
+      }
     };
   }
 
@@ -189,6 +208,7 @@ export class OrderService {
       .findById(id)
       .populate('userId', 'email profile')
       .populate('items.productId', 'name')
+      .populate('addressId', '_id, fullName phone addressLine1 addressLine2 city state country postalCode')
       .lean()
       .exec();
 
@@ -197,11 +217,15 @@ export class OrderService {
     }
 
     // Users can only view their own orders
-    if (user.role === AppRolesEnum.USER && order.userId._id.toString() !== user.auth_id) {
+    if (user.role === AppRole.USER && order.userId._id.toString() !== user.auth_id) {
       throw new ForbiddenException('You can only view your own orders');
     }
 
-    return this.toDetailEntity(order);
+    return {
+      success: true,
+      message: 'Order retrieved successfully',
+      data: this.toDetailEntity(order)
+    }
   }
 
   async findByOrderNumber(orderNumber: string, user: JwtPayload) {
@@ -209,6 +233,7 @@ export class OrderService {
       .findOne({ orderNumber })
       .populate('userId', 'email profile')
       .populate('items.productId', 'name')
+      .populate('addressId', '_id, fullName phone addressLine1 addressLine2 city state country postalCode')
       .lean()
       .exec();
 
@@ -217,11 +242,15 @@ export class OrderService {
     }
 
     // Users can only view their own orders
-    if (user.role === AppRolesEnum.USER && order.userId._id.toString() !== user.auth_id) {
+    if (user.role === AppRole.USER && order.userId._id.toString() !== user.auth_id) {
       throw new ForbiddenException('You can only view your own orders');
     }
 
-    return this.toDetailEntity(order);
+    return {
+      success: true,
+      message: 'Order retrieved successfully',
+      data: this.toDetailEntity(order)
+    }
   }
 
   async updateStatus(
@@ -266,7 +295,11 @@ export class OrderService {
 
     await order.save();
 
-    return this.toDetailEntity(order);
+    return {
+      success: true,
+      message: 'Order updated successfully',
+      data: this.toDetailEntity(order)
+    };
   }
 
   async cancel(id: string, cancelDto: CancelOrderDto, user: JwtPayload) {
@@ -281,7 +314,7 @@ export class OrderService {
     }
 
     // Users can only cancel their own orders
-    if (user.role === AppRolesEnum.USER && order.userId.toString() !== user.auth_id) {
+    if (user.role === AppRole.USER && order.userId.toString() !== user.auth_id) {
       throw new ForbiddenException('You can only cancel your own orders');
     }
 
@@ -305,7 +338,7 @@ export class OrderService {
     // Release reserved stock
     await this.releaseStock(order.items);
 
-    return { message: 'Order cancelled successfully', order: this.toDetailEntity(order) };
+    return { success: true, message: 'Order cancelled successfully', data: this.toDetailEntity(order) };
   }
 
   async getOrderStats(userId?: string) {
@@ -332,16 +365,24 @@ export class OrderService {
     ]);
 
     return {
-      total,
-      totalRevenue: totalRevenue[0]?.total || 0,
-      byStatus: stats.reduce((acc, stat) => {
-        acc[stat._id] = {
-          count: stat.count,
-          totalAmount: stat.totalAmount,
-        };
-        return acc;
-      }, {}),
+      success: true,
+      message: "Order stats ready",
+      data: {
+        total,
+        totalRevenue: totalRevenue[0]?.total || 0,
+        byStatus: stats.reduce((acc, stat) => {
+          acc[stat._id] = {
+            count: stat.count,
+            totalAmount: stat.totalAmount,
+          };
+          return acc;
+        }, {}),
+      }
     };
+  }
+
+  async calculateShippingFee(addressId: string) {
+    if (!new Types.ObjectId(addressId)) throw new BadRequestException('Invalid Address Id')
   }
 
   // ========== HELPER METHODS ==========
@@ -350,7 +391,7 @@ export class OrderService {
     const random = Math.floor(Math.random() * 1000)
       .toString()
       .padStart(3, '0');
-    return `ORD-${timestamp}-${random}`;
+    return `FSK-${timestamp}-${random}`;
   }
 
   private calculateShipping(subtotal: number): number {
@@ -359,14 +400,15 @@ export class OrderService {
     return 2000000; // 20 NGN flat rate
   }
 
-  // private calculateTax(subtotal: number): number {
-  //   // Simple tax calculation - customize as needed
-  //   const TAX_RATE = 0.075; // 7.5% VAT
-  //   return Math.round(subtotal * TAX_RATE);
-  // }
+  private calculateTax(subtotal: number): number {
+    // Simple tax calculation - customize as needed
+    const TAX_RATE = 0.025; // 2.5% VAT
+    return Math.round(subtotal * TAX_RATE);
+  }
 
   private validateStatusTransition(currentStatus: OrderStatus, newStatus: OrderStatus) {
     const validTransitions: Record<OrderStatus, OrderStatus[]> = {
+      [OrderStatus.PENDING]: [OrderStatus.PENDING_PAYMENT, OrderStatus.PAID],
       [OrderStatus.PENDING_PAYMENT]: [OrderStatus.PAID, OrderStatus.CANCELLED],
       [OrderStatus.PAID]: [OrderStatus.PROCESSING, OrderStatus.CANCELLED],
       [OrderStatus.PROCESSING]: [OrderStatus.SHIPPED, OrderStatus.CANCELLED],

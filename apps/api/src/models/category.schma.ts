@@ -24,14 +24,6 @@ export class Category {
   })
   slug: string;
 
-  @Prop({
-    type: Types.ObjectId,
-    ref: 'Category',
-    default: null,
-    index: true,
-  })
-  parentId: Types.ObjectId | null;
-
   @Prop({ default: true, index: true })
   isActive: boolean;
 
@@ -57,7 +49,6 @@ export const CategorySchema = SchemaFactory.createForClass(Category);
 // Compound indexes for performance
 CategorySchema.index({ name: 1, isActive: 1 });
 CategorySchema.index({ slug: 1, isActive: 1 });
-CategorySchema.index({ parentId: 1, isActive: 1 });
 CategorySchema.index({ order: 1, isActive: 1 });
 
 // Text index for search

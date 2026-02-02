@@ -14,6 +14,7 @@ import * as crypto from 'crypto';
 import { Order, OrderDocument, OrderStatus } from 'src/models/order.schema';
 import { Payment, PaymentDocument, PaymentStatus } from 'src/models/payment.schema';
 import type { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
+import { ApiResponse } from 'src/type/response';
 
 interface PaystackInitializeResponse {
   status: boolean;
@@ -67,7 +68,7 @@ export class PaymentService {
     orderId: string,
     user: JwtPayload,
     callbackUrl?: string,
-  ): Promise<PaystackInitializeResponse['data']> {
+  ): Promise<ApiResponse<PaystackInitializeResponse['data']>> {
     const { auth_id, email } = user
     const order = await this.orderModel.findOne({
       _id: new Types.ObjectId(orderId),
@@ -132,7 +133,11 @@ export class PaymentService {
         `Payment initialized: ${reference} for order ${order.orderNumber}`,
       );
 
-      return response.data.data;
+      return {
+        success: true,
+        message: "success",
+        data: response.data.data
+      }
     } catch (error) {
       await this.paymentModel.findByIdAndUpdate(payment._id, {
         status: PaymentStatus.FAILED,
@@ -311,7 +316,7 @@ export class PaymentService {
     this.logger.log(`Order updated to PAID: ${orderId}`);
   }
 
-  async getPaymentByReference(reference: string): Promise<Payment> {
+  async getPaymentByReference(reference: string): Promise<ApiResponse<Payment>> {
     const payment = await this.paymentModel
       .findOne({ reference })
       .populate('orderId')
@@ -321,24 +326,32 @@ export class PaymentService {
       throw new NotFoundException('Payment not found');
     }
 
-    return payment;
+    return {
+      success: true,
+      message: "success",
+      data: payment
+    };
   }
 
-  async getPaymentsByOrder(orderId: string): Promise<Payment> {
+  async getPaymentsByOrder(orderId: string): Promise<ApiResponse<Payment>> {
     const p = await this.paymentModel
       .findOne({ orderId: new Types.ObjectId(orderId) })
       .exec();
 
     if (!p) throw new NotFoundException('Payment not found')
 
-    return p
+    return {
+      success: true,
+      message: "success",
+      data: p
+    }
   }
 
   async getPaymentsByUser(
     user: JwtPayload,
     limit = 50,
     skip = 0,
-  ): Promise<Payment[]> {
+  ): Promise<ApiResponse<Payment[]>> {
     const h = await this.paymentModel
       .find({ userId: new Types.ObjectId(user.auth_id) })
       .sort({ createdAt: -1 })
@@ -349,6 +362,10 @@ export class PaymentService {
 
     if (h && h.length <= 0) throw new NotFoundException('No payment history')
 
-    return h
+    return {
+      success: true,
+      message: 'success',
+      data: h
+    }
   }
 }

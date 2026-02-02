@@ -1,7 +1,6 @@
-export enum AppRolesEnum {
+export enum AppRole {
   USER = 'USER',
+  VENDOR = 'VENDOR',
   ADMIN = 'ADMIN',
   SUPER_ADMIN = 'SUPER_ADMIN',
 }
-
-export type AppRoles = keyof typeof AppRolesEnum | AppRolesEnum;
