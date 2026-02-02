@@ -1,6 +1,7 @@
 
 export enum UserRole {
   USER = 'USER',
+  VENDOR = 'VENDOR',
   ADMIN = 'ADMIN',
   SUPER_ADMIN = 'SUPER_ADMIN',
 }
@@ -9,6 +10,7 @@ export enum OrderStatus {
   PENDING_PAYMENT = 'PENDING_PAYMENT',
   PAID = 'PAID',
   PROCESSING = 'PROCESSING',
+  PENDING = 'PENDING',
   SHIPPED = 'SHIPPED',
   DELIVERED = 'DELIVERED',
   CANCELLED = 'CANCELLED',
@@ -33,4 +35,9 @@ export enum PaymentChannel {
   USSD = 'ussd',
   BANK_TRANSFER = 'bank_transfer',
   QR = 'qr',
+}
+
+export enum DeliveryMethod {
+  PICK_UP = 'PICK_UP',
+  DELIVERY = 'DELIVERY'
 }

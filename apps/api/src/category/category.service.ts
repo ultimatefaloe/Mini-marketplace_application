@@ -50,7 +50,7 @@ export class CategoryService {
 
     return {
       success: true,
-      message: 'success',
+      message: 'Category created',
       data: this.toEntity(category)
     }
   }
@@ -81,7 +81,7 @@ export class CategoryService {
 
     return {
       success: true,
-      message: 'success',
+      message: 'categories successfully retrieved',
       data: categories.map((c) => this.toEntity(c))
     }
   }
@@ -121,7 +121,7 @@ export class CategoryService {
 
     return {
       success: true,
-      message: 'success',
+      message: 'category successfully retrieved',
       data: {
         ...this.toEntity(category),
         // children: children.map((c) => this.toEntity(c)),

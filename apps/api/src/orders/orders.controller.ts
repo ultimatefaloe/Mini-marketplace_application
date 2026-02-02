@@ -35,7 +35,6 @@ export class OrderController {
   }
 
   @Get('stats')
-  @Roles(AppRole.ADMIN, AppRole.SUPER_ADMIN)
   getStats(@Query('userId') userId?: string) {
     return this.orderService.getOrderStats(userId);
   }
@@ -54,7 +53,7 @@ export class OrderController {
   }
 
   @Patch(':id/status')
-  @Roles(AppRole.ADMIN, AppRole.SUPER_ADMIN)
+  @Roles(AppRole.VENDOR, AppRole.ADMIN, AppRole.SUPER_ADMIN)
   updateStatus(
     @Param('id') id: string,
     @Body() updateStatusDto: UpdateOrderStatusDto,

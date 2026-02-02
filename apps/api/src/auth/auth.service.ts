@@ -16,14 +16,24 @@ import { User, UserDocument } from 'src/models/user.schema';
 import { Admin, AdminDocument } from 'src/models/admin.schema';
 import { NotificationService } from 'src/notifications/notification.service';
 import { AppRole } from 'src/type/role';
+import { Vendor, VendorDocument } from 'src/models/vendor.schema';
+import { CreateVendorDto } from './dto/create-vendor.dto';
 
+export type UserAuthType = {
+  fullName: string;
+  email: string;
+  phone: string;
+  role: AppRole;
+  isActive: boolean;
+}
 @Injectable()
 export class AuthService {
-  private resetTokens = new Map<string, { email: string; type: AppRole; exp: number }>();
+  private resetTokens = new Map<string, { email: string; role: AppRole; exp: number }>();
 
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Admin.name) private adminModel: Model<AdminDocument>,
+    @InjectModel(Vendor.name) private vendorModel: Model<VendorDocument>,
     private jwtService: JwtService,
     private config: ConfigService,
     private notificationService: NotificationService
@@ -47,7 +57,10 @@ export class AuthService {
     });
 
     const payload = this.parseUserToJwtPayload(user, AppRole.USER);
-    return this.generateTokens(payload);
+    return {
+      data: payload,
+      tokens: this.generateTokens(payload)
+    }
   }
 
   async signInUser(dto: SignInDto) {
@@ -65,7 +78,85 @@ export class AuthService {
     }
     const payload = this.parseUserToJwtPayload(user, AppRole.USER);
 
-    return this.generateTokens(payload);
+    return {
+      data: payload,
+      tokens: this.generateTokens(payload)
+    };
+  }
+
+  // ========== VENDOR AUTH ==========
+  async signUpVendor(dto: CreateVendorDto, logoUrl: string) {
+    const existing = await this.vendorModel.findOne({ email: dto.email });
+    if (existing) {
+      throw new ConflictException('Email already registered');
+    }
+
+    const passwordHash = await bcrypt.hash(dto.password, 12);
+
+    const vendor = await this.vendorModel.create({
+      email: dto.email,
+      passwordHash,
+      businessName: dto.businessName,
+      description: dto.description,
+      logoUrl,
+      idDocument: dto.idDocument,
+      phone: dto.phone,
+      location: dto.location,
+    });
+
+    // Send welcome email (non-blocking)
+    this.notificationService.sendEmail({
+      to: dto.email,
+      subject: 'Welcome to Our Platform - Vendor Account Under Review',
+      html: `<p>Hi ${dto.businessName},</p>
+             <p>Your vendor account has been created and is under review. We'll notify you once approved.</p>`,
+    });
+
+    const tokens = await this.generateVendorTokens(vendor);
+
+    return {
+      data: this.toVendorEntity(vendor),
+      tokens,
+    };
+  }
+
+  async signInVendor(dto: SignInDto) {
+    const vendor = await this.vendorModel
+      .findOne({ email: dto.email, isActive: true })
+      .select('+passwordHash');
+
+    if (!vendor) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const isValid = await bcrypt.compare(dto.password, vendor.passwordHash);
+    if (!isValid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const tokens = await this.generateVendorTokens(vendor);
+
+    return {
+      data: this.toVendorEntity(vendor),
+      tokens,
+    };
+  }
+
+  async googleAuthVendor(googleUser: any) {
+    let vendor = await this.vendorModel.findOne({ email: googleUser.email });
+
+    if (!vendor) {
+      throw new BadRequestException(
+        'Vendor account not found. Please sign up with complete business information.'
+      );
+    }
+
+    if (!vendor.googleId) {
+      vendor.googleId = googleUser.googleId;
+      await vendor.save();
+    }
+
+    return this.generateVendorTokens(vendor);
   }
 
   // ========== ADMIN AUTH ==========
@@ -137,25 +228,42 @@ export class AuthService {
     return this.generateTokens(payload);
   }
 
-  // ========== PASSWORD RESET ==========
-  async requestPasswordReset(dto: RequestResetDto, type: AppRole) {
-    const Model = (type === AppRole.USER ? this.userModel : this.adminModel) as Model<UserDocument | AdminDocument>;
-    const account = await Model.findOne({ email: dto.email, isActive: true });
+  // ========== UNIVERSAL PASSWORD RESET (works for all roles) ==========
+  async requestPasswordReset(dto: RequestResetDto, role: AppRole) {
+    let Model: Model<any>;
+    let account: any;
+
+    switch (role) {
+      case AppRole.USER:
+        Model = this.userModel;
+        break;
+      case AppRole.ADMIN:
+      case AppRole.SUPER_ADMIN:
+        Model = this.adminModel;
+        break;
+      case AppRole.VENDOR:
+        Model = this.vendorModel;
+        break;
+      default:
+        throw new BadRequestException('Invalid role');
+    }
+
+    account = await Model.findOne({ email: dto.email, isActive: true });
 
     if (!account) {
-      // Don't reveal if email exists
-      return { message: 'If email exists, reset link sent' };
+      return { success: true, message: 'If email exists, reset link sent' };
     }
 
     const token = randomBytes(32).toString('hex');
     this.resetTokens.set(token, {
       email: dto.email,
-      type,
+      role,
       exp: Date.now() + 3600000, // 1 hour
     });
 
     const frontendUrl = this.config.get<string>('FRONTEND_URL');
-    const resetUrl = `${frontendUrl}/reset-password?token=${token}&type=${type}`;
+    const resetPath = role === AppRole.VENDOR ? 'vendor' : role.toLowerCase();
+    const resetUrl = `${frontendUrl}/${resetPath}/reset-password?token=${token}`;
 
     // Non-blocking email send
     this.notificationService.sendEmail({
@@ -164,7 +272,7 @@ export class AuthService {
       html: `<p>Click <a href="${resetUrl}">here</a> to reset your password. Link expires in 1 hour.</p>`,
     });
 
-    return { message: 'If email exists, reset link sent' };
+    return { success: true, message: 'If email exists, reset link sent' };
   }
 
   async resetPassword(dto: ResetPasswordDto) {
@@ -174,7 +282,23 @@ export class AuthService {
       throw new BadRequestException('Invalid or expired token');
     }
 
-    const Model = (tokenData.type === AppRole.USER ? this.userModel : this.adminModel) as Model<UserDocument | AdminDocument>;
+    let Model: Model<any>;
+
+    switch (tokenData.role) {
+      case AppRole.USER:
+        Model = this.userModel;
+        break;
+      case AppRole.ADMIN:
+      case AppRole.SUPER_ADMIN:
+        Model = this.adminModel;
+        break;
+      case AppRole.VENDOR:
+        Model = this.vendorModel;
+        break;
+      default:
+        throw new BadRequestException('Invalid role');
+    }
+
     const account = await Model.findOne({ email: tokenData.email });
 
     if (!account) {
@@ -186,11 +310,10 @@ export class AuthService {
 
     this.resetTokens.delete(dto.token);
 
-    return { message: 'Password reset successful' };
+    return { success: true, message: 'Password reset successful' };
   }
 
-
-
+  // ========== HELPERS ==========
   private parseUserToJwtPayload(
     user: any,
     role: AppRole
@@ -210,8 +333,60 @@ export class AuthService {
     };
   }
 
+  private toVendorEntity(vendor: VendorDocument) {
+    return {
+      auth_id: vendor._id.toString(),
+      email: vendor.email,
+      businessName: vendor.businessName,
+      description: vendor.description,
+      logoUrl: vendor.logoUrl,
+      verified: vendor.verified,
+      accountStatus: vendor.accountStatus,
+      role: vendor.role,
+      location: vendor.location,
+      ratingAverage: vendor.ratingAverage,
+      ratingCount: vendor.ratingCount,
+      phone: vendor.phone,
+      // createdAt: vendor.createdAt,
+    };
+  }
 
-  // ========== HELPERS ==========
+  // ========== VENDOR TOKEN GENERATION ==========
+  private async generateVendorTokens(vendor: VendorDocument) {
+    const payload: JwtPayload = {
+      auth_id: vendor._id.toString(),
+      email: vendor.email,
+      role: AppRole.VENDOR,
+      businessName: vendor.businessName,
+      verified: vendor.verified,
+      accountStatus: vendor.accountStatus,
+      location: {
+        lat: vendor.location.lat,
+        lng: vendor.location.lng,
+        city: vendor.location.city,
+        state: vendor.location.state,
+      },
+    };
+
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.sign(payload, {
+        secret: this.config.get('JWT_SECRET'),
+        expiresIn: '15m',
+      }),
+
+      this.jwtService.sign(payload, {
+        secret: this.config.get('JWT_REFRESH_SECRET'),
+        expiresIn: '21d',
+      })
+    ]);
+
+    // Store refresh token
+    vendor.refreshToken = await bcrypt.hash(refreshToken, 10);
+    await vendor.save();
+
+    return { accessToken, refreshToken };
+  }
+
   generateTokens(payload: JwtPayload) {
     const accessToken = this.jwtService.sign(payload, {
       secret: this.config.get('JWT_SECRET'),

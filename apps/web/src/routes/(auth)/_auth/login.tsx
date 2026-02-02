@@ -1,15 +1,16 @@
 import React from 'react'
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useUserLogin } from '@/api/queries/auth.query'
-import { useAuth } from '@/hooks'
+import { useUserLogin } from '@/api/queries'
 import { AuthFormWrapper, GoogleAuthButton } from '@/components/auth'
 import { Eye, EyeOff } from 'lucide-react'
+import { toast } from 'react-toastify'
+import { useAuth } from '@/hooks'
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -23,12 +24,10 @@ export const Route = createFileRoute('/(auth)/_auth/login')({
 })
 
 function LoginPage() {
+  const { setAuth } = useAuth()
   const [showPassword, setShowPassword] = React.useState(false)
   const { mutate: login, isPending } = useUserLogin()
-  const { setAuth } = useAuth()
-
-  console.log(isPending)
-
+  const navigate = useNavigate()
   const {
     register,
     handleSubmit,
@@ -38,17 +37,24 @@ function LoginPage() {
     resolver: zodResolver(loginSchema),
   })
 
-  const onSubmit = async (data: LoginFormData) => {
+  const onSubmit = (data: LoginFormData) => {
     try {
-       await login(data, {
-        onSuccess: (data) => {
-          if (data.user) {
-            setAuth(data.user)
+      login(data, {
+        onSuccess: (response) => {
+          console.log(response)
+          if (response.success) {
+            setAuth(response.data);
+            toast.success(response.message || 'Welcome back!');
+            navigate({ to: '/' });
           }
-          // TanStack Router will handle redirect via beforeLoad
+        },
+        onError: (error: any) => {
+          console.error(error)
+          toast.error(error.message || 'Login failed, Invalid credentials');
         },
       })
     } catch (error: any) {
+      toast.error(error.message || 'Login failed. Please try again.')
       setError('root', {
         type: 'manual',
         message: error.message || 'Login failed. Please try again.',

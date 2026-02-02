@@ -75,8 +75,16 @@ export const useCart = () => {
         try {
           setLoading(true);
           await addToCartMutation.mutateAsync({
-            productId: productId as ObjectId,
-            quantity,
+            items: [
+              {
+                _id: '',
+                productId: productId as ObjectId,
+                quantity,
+                nameSnapshot: productName,
+                priceSnapshot: productPrice,
+                variantOptions
+              }
+            ]
           });
 
           // Refetch to get updated cart
@@ -130,13 +138,13 @@ export const useCart = () => {
    * Update cart item quantity
    */
   const updateCartItem = useCallback(
-    async (productId: string, quantity: number) => {
+    async ( productId: string, quantity: number, itemId: string,) => {
       if (isAuthenticated) {
         // Authenticated user - update on server
         try {
           setLoading(true);
           await updateCartItemMutation.mutateAsync({
-            productId: productId as ObjectId,
+            itemId,
             quantity,
           });
 
@@ -192,12 +200,12 @@ export const useCart = () => {
    * Remove item from cart
    */
   const removeFromCart = useCallback(
-    async (productId: string, productName?: string) => {
+    async (productId: string, itemId?: string, productName?: string) => {
       if (isAuthenticated) {
         // Authenticated user - remove from server
         try {
           setLoading(true);
-          await removeFromCartMutation.mutateAsync(productId);
+          await removeFromCartMutation.mutateAsync(itemId ? itemId : '');
 
           // Refetch to get updated cart
           await refetchServerCart();

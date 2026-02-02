@@ -1,7 +1,7 @@
-import type { ITimestamps, ObjectId } from "./base.types";
+import type { IBaseDocument, ITimestamps, ObjectId } from "./base.types";
 import type { IProduct, IVariantOptions } from "./product.types";
 
-export interface ICartItem {
+export interface ICartItem extends IBaseDocument{
   productId: ObjectId;
   nameSnapshot: string;
   priceSnapshot: number;
@@ -30,16 +30,16 @@ export interface ICartWithProducts extends Omit<ICart, 'items'> {
  * Add to cart payload
  */
 export interface IAddToCartPayload {
-  productId: ObjectId;
-  quantity: number;
+  items: ICartItem[];
 }
 
 /**
  * Update cart item payload
  */
 export interface IUpdateCartItemPayload {
-  productId: ObjectId;
+  itemId: string
   quantity: number;
+  variantOptions?: IVariantOptions
 }
 
 /**

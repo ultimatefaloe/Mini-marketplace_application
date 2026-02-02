@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { JwtModule, JwtService } from '@nestjs/jwt';
+import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthController } from './auth.controller';
@@ -8,6 +8,8 @@ import { User, UserSchema } from 'src/models/user.schema';
 import { Admin, AdminSchema } from 'src/models/admin.schema';
 import { NotificationService } from 'src/notifications/notification.service';
 import { GoogleStrategy, JwtStrategy, RefreshJwtStrategy } from './strategies';
+import { Vendor, VendorSchema } from 'src/models/vendor.schema';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Module({
   imports: [
@@ -16,6 +18,7 @@ import { GoogleStrategy, JwtStrategy, RefreshJwtStrategy } from './strategies';
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: Admin.name, schema: AdminSchema },
+      { name: Vendor.name, schema: VendorSchema },
     ]),
   ],
   controllers: [AuthController],
@@ -25,6 +28,7 @@ import { GoogleStrategy, JwtStrategy, RefreshJwtStrategy } from './strategies';
     RefreshJwtStrategy,
     GoogleStrategy,
     NotificationService,
+    CloudinaryService
   ],
   exports: [
     AuthService,

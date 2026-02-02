@@ -34,6 +34,7 @@ export const useAuth = () => {
   }, [validationData, isValidating, setAuth, clearAuth, setLoading]);
 
   const isAdmin = role === UserRole.ADMIN || role === UserRole.SUPER_ADMIN;
+  const isVendor = role === UserRole.VENDOR 
   const isUser = role === UserRole.USER;
   const isSuperAdmin = role === UserRole.SUPER_ADMIN;
 
@@ -43,6 +44,7 @@ export const useAuth = () => {
     isLoading: isLoading || isValidating,
     role,
     isAdmin,
+    isVendor,
     isUser,
     isSuperAdmin,
     setAuth,

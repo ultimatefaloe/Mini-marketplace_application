@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { AppRole } from 'src/type';
 
 export type AdminDocument = Admin & Document;
 
@@ -17,7 +18,7 @@ export class Admin {
   @Prop({ required: true, select: false })
   passwordHash: string;
 
-  @Prop({ default: 'ADMIN', enum: ['ADMIN', 'SUPER_ADMIN'], index: true })
+  @Prop({ default: AppRole.ADMIN, enum: Object.values(AppRole), index: true })
   role: string;
 
   @Prop({

@@ -12,7 +12,7 @@ import {
   CheckCircle,
 } from 'lucide-react'
 import type { IProductListItem } from '@/types'
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { AddToCartButton } from '../cart/add-to-cart-button'
 
 // Simplified interface with only relevant data
@@ -31,8 +31,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 }) => {
   const [isFavorite, setIsFavorite] = useState(false)
   const [imageLoaded, setImageLoaded] = useState(false)
-
-  console.log(product)
+  const navigate = useNavigate()
 
   const finalPrice =
     product.discount > 0
@@ -117,192 +116,196 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   const status = getProductStatus()
 
+  const productViewHandler = () => {
+    navigate({
+      to: '/products/$slug',
+      params: {
+        slug: product.slug,
+      },
+    })
+  }
+
   return (
-    <Link
-      to="/products/$slug"
-      params={{ slug: product.slug }}
-      className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-mmp-secondary focus-visible:ring-offset-2 rounded-xl group"
+    <Card
+      className={cn(
+        'group relative overflow-hidden transition-all duration-300 bg-white',
+        variantStyle.border,
+        variantStyle.hoverBorder,
+        variantStyle.shadow,
+        variantStyle.rounded,
+        'hover:translate-y-[-2px]',
+        className,
+      )}
+      aria-label={`View ${product.name} details`}
     >
-      <Card
+      {/* Image Container */}
+      <div
         className={cn(
-          'group relative overflow-hidden transition-all duration-300 bg-white',
-          variantStyle.border,
-          variantStyle.hoverBorder,
-          variantStyle.shadow,
+          'relative overflow-hidden bg-gradient-to-br from-mmp-neutral/30 to-mmp-primary/5',
+          config.imageHeight,
           variantStyle.rounded,
-          'hover:translate-y-[-2px]',
-          className,
+          'rounded-b-none',
         )}
-        aria-label={`View ${product.name} details`}
       >
-        {/* Image Container */}
-        <div
-          className={cn(
-            'relative overflow-hidden bg-gradient-to-br from-mmp-neutral/30 to-mmp-primary/5',
-            config.imageHeight,
-            variantStyle.rounded,
-            'rounded-b-none',
-          )}
-        >
-          {/* Discount Badge */}
-          {product.discount > 0 && (
-            <Badge className="absolute top-3 left-3 z-10 bg-gradient-to-r from-mmp-accent to-mmp-secondary text-white border-0 shadow-md">
-              -{product.discount}%
-            </Badge>
-          )}
+        {/* Discount Badge */}
+        {product.discount > 0 && (
+          <Badge className="absolute top-3 left-3 z-10 bg-gradient-to-r from-mmp-accent to-mmp-secondary text-white border-0 shadow-md">
+            -{product.discount}%
+          </Badge>
+        )}
 
-          {/* Cart button */}
-          <div className="absolute bottom-4 left-0 right-0 px-4 z-50">
-            <AddToCartButton
-              className="w-full bg-white text-mmp-primary2 hover:bg-mmp-neutral hover:text-mmp-primary2 shadow-md"
-              size="default"
-              product={product}
-              aria-label={'Add to cart'}
-            />
-          </div>
-
-          {/* Favorite Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleFavorite}
-            className={cn(
-              'absolute top-3 right-3 z-10 w-8 h-8 rounded-full transition-all duration-200',
-              isFavorite
-                ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20'
-                : 'bg-white/80 hover:bg-white text-gray-600 hover:text-red-500 shadow-sm',
-            )}
-            aria-label={
-              isFavorite ? 'Remove from favorites' : 'Add to favorites'
-            }
-          >
-            <Heart className={cn('h-4 w-4', isFavorite && 'fill-current')} />
-          </Button>
-
-          {/* Product Image */}
-          <div
-            className={cn(
-              'w-full h-full transition-transform duration-500 group-hover:scale-[1.03]',
-              !imageLoaded && 'animate-pulse bg-mmp-neutral/20',
-            )}
-          >
-            <img
-              src={product.images[0]}
-              alt={product.name}
-              className="w-full h-full object-cover"
-              loading="lazy"
-              onLoad={() => setImageLoaded(true)}
-            />
-          </div>
+        {/* Cart button */}
+        <div className="absolute bottom-4 left-0 right-0 px-4 z-10">
+          <AddToCartButton
+            className="w-full bg-white text-mmp-primary2 hover:bg-mmp-neutral hover:text-mmp-primary2 shadow-md"
+            size="default"
+            product={product}
+            aria-label={'Add to cart'}
+          />
         </div>
 
-        {/* Product Info */}
-        <CardContent className={cn(config.contentPadding, 'space-y-2')}>
-          {/* Brand (if enabled) */}
-          {config.showBrand && product.brand && (
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-mmp-accent uppercase tracking-wide truncate">
-                {product.brand}
-              </span>
-              {product.soldCount > 50 && (
-                <Badge
-                  variant="outline"
-                  className="border-mmp-secondary/30 text-mmp-secondary text-xs px-2 py-0 h-5"
-                >
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  Hot
-                </Badge>
-              )}
-            </div>
+        {/* Favorite Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleFavorite}
+          className={cn(
+            'absolute top-3 right-3 z-10 w-8 h-8 rounded-full transition-all duration-200',
+            isFavorite
+              ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20'
+              : 'bg-white/80 hover:bg-white text-gray-600 hover:text-red-500 shadow-sm',
           )}
+          aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+        >
+          <Heart className={cn('h-4 w-4', isFavorite && 'fill-current')} />
+        </Button>
 
-          {/* Product Name */}
-          <h3
-            className={cn(
-              'font-medium text-mmp-primary2 transition-colors group-hover:text-mmp-accent',
-              'truncate',
-              config.nameLines === 2 && 'line-clamp-2 h-10',
-              config.nameLines === 1 && 'line-clamp-1',
-            )}
-          >
-            {product.name}
-          </h3>
+        {/* Product Image */}
+        <div
+          className={cn(
+            'w-full h-full transition-transform duration-500 group-hover:scale-[1.03]',
+            !imageLoaded && 'animate-pulse bg-mmp-neutral/20',
+          )}
+        >
+          <img
+            src={product.images[0]}
+            alt={product.name}
+            className="w-full h-full object-cover"
+            loading="lazy"
+            onLoad={() => setImageLoaded(true)}
+          />
+        </div>
+      </div>
 
-          {/* Price Section */}
-          <div className="flex items-center gap-2">
-            <span className="text-lg font-bold text-mmp-primary2">
-              {formatCurrency(finalPrice)}
+      {/* Product Info */}
+      <CardContent
+        className={cn(config.contentPadding, 'space-y-2  cursor-pointer')}
+        onClick={productViewHandler}
+      >
+        {/* Brand (if enabled) */}
+        {config.showBrand && product.brand && (
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-mmp-accent uppercase tracking-wide truncate">
+              {product.brand}
             </span>
-            {product.discount > 0 && (
-              <span className="text-sm text-mmp-neutral/60 line-through">
-                {formatCurrency(product.price)}
-              </span>
-            )}
-            {product.discount > 30 && (
-              <Badge className="bg-gradient-to-r from-red-500/10 to-orange-500/10 text-red-600 text-xs">
-                <Zap className="h-3 w-3 mr-1" />
-                Great Deal
+            {product.soldCount > 50 && (
+              <Badge
+                variant="outline"
+                className="border-mmp-secondary/30 text-mmp-secondary text-xs px-2 py-0 h-5"
+              >
+                <TrendingUp className="h-3 w-3 mr-1" />
+                Hot
               </Badge>
             )}
           </div>
+        )}
 
-          {/* Stock & Status */}
-          <div className="flex items-center justify-between pt-2 gap-2">
-            <Badge
-              variant="outline"
-              className={cn('border-0 text-xs font-medium', status.className)}
-            >
-              {isOutOfStock ? (
-                <span className="flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
-                  {status.text}
-                </span>
-              ) : isLowStock ? (
-                <span className="flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                  {status.text} • {product.stock} left
-                </span>
-              ) : (
-                <span className="flex items-center gap-1">
-                  <CheckCircle className="h-3 w-3" />
-                  {status.text}
-                </span>
-              )}
-            </Badge>
-
-            {/* Sold Count (if enabled) */}
-            {config.showSoldCount && product.soldCount > 0 && (
-              <div className="flex items-center gap-1.5">
-                <div className="flex items-center">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Star
-                      key={i}
-                      className={cn(
-                        'h-3 w-3',
-                        i <= Math.min(5, Math.floor(product.soldCount / 20))
-                          ? 'fill-orange-300 text-orange-300'
-                          : 'fill-gray-200 text-orange-300',
-                      )}
-                    />
-                  ))}
-                </div>
-                <span className="text-xs text-mmp-neutral/60">
-                  ({product.soldCount})
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Add to Cart Button (Mobile/Compact) */}
-          {!config.quickActions && !isOutOfStock && (
-            <AddToCartButton
-              className="w-full bg-white text-mmp-primary2 hover:bg-mmp-neutral hover:text-mmp-primary2 shadow-md cursor-pointer z-50"
-              product={product}
-            />
+        {/* Product Name */}
+        <h3
+          className={cn(
+            'font-medium text-mmp-primary2 transition-colors group-hover:text-mmp-accent',
+            'truncate',
+            config.nameLines === 2 && 'line-clamp-2 h-10',
+            config.nameLines === 1 && 'line-clamp-1',
           )}
-        </CardContent>
-      </Card>
-    </Link>
+        >
+          {product.name}
+        </h3>
+
+        {/* Price Section */}
+        <div className="flex items-center gap-2">
+          <span className="text-lg font-bold text-mmp-primary2">
+            {formatCurrency(finalPrice)}
+          </span>
+          {product.discount > 0 && (
+            <span className="text-sm text-mmp-neutral/60 line-through">
+              {formatCurrency(product.price)}
+            </span>
+          )}
+          {product.discount > 30 && (
+            <Badge className="bg-gradient-to-r from-red-500/10 to-orange-500/10 text-red-600 text-xs">
+              <Zap className="h-3 w-3 mr-1" />
+              Great Deal
+            </Badge>
+          )}
+        </div>
+
+        {/* Stock & Status */}
+        <div className="flex items-center justify-between pt-2 gap-2">
+          <Badge
+            variant="outline"
+            className={cn('border-0 text-xs font-medium', status.className)}
+          >
+            {isOutOfStock ? (
+              <span className="flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+                {status.text}
+              </span>
+            ) : isLowStock ? (
+              <span className="flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                {status.text} • {product.stock} left
+              </span>
+            ) : (
+              <span className="flex items-center gap-1">
+                <CheckCircle className="h-3 w-3" />
+                {status.text}
+              </span>
+            )}
+          </Badge>
+
+          {/* Sold Count (if enabled) */}
+          {config.showSoldCount && product.soldCount > 0 && (
+            <div className="flex items-center gap-1.5">
+              <div className="flex items-center">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Star
+                    key={i}
+                    className={cn(
+                      'h-3 w-3',
+                      i <= Math.min(5, Math.floor(product.soldCount / 20))
+                        ? 'fill-orange-300 text-orange-300'
+                        : 'fill-gray-200 text-orange-300',
+                    )}
+                  />
+                ))}
+              </div>
+              <span className="text-xs text-mmp-neutral/60">
+                ({product.soldCount})
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Add to Cart Button (Mobile/Compact) */}
+        {!config.quickActions && !isOutOfStock && (
+          <AddToCartButton
+            className="w-full bg-white text-mmp-primary2 hover:bg-mmp-neutral hover:text-mmp-primary2 shadow-md cursor-pointer z-10"
+            product={product}
+          />
+        )}
+      </CardContent>
+    </Card>
   )
 }
 
@@ -321,8 +324,8 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   className,
 }) => {
   const gridCols = {
-    sm: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5',
-    md: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5',
+    sm: 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
+    md: 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
     lg: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
   }
 
@@ -339,7 +342,6 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
     </div>
   )
 }
-
 
 export const ProductListItem: React.FC<{ product: any }> = ({ product }) => {
   const discountedPrice = product.price * (1 - product.discount / 100)

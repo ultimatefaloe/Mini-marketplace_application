@@ -17,6 +17,7 @@ export interface IProduct extends IBaseDocument, ITimestamps {
   categoryId: ObjectId;
   brand?: string;
   variantOptions: IVariantOptions;
+  category: Partial<ICategory>;
   tags: string[];
   discount: number;
   price: number;

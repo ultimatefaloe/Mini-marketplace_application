@@ -143,7 +143,7 @@ export class ProductService {
     };
   }
 
-  async findOne(id: string) {
+  async findOneById(id: string) {
     if (!Types.ObjectId.isValid(id)) {
       throw new BadRequestException('Invalid product ID');
     }
@@ -170,6 +170,60 @@ export class ProductService {
       data: this.toDetailEntity(product)
     }
   }
+
+  async findOneBySlug(slug: string) {
+
+    const product = await this.productModel
+      .findOne({ slug })
+      .populate('categoryId', 'name slug')
+      .lean()
+      .exec();
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    // Increment view count (fire and forget)
+    this.productModel
+      .findByIdAndUpdate(product.id, { $inc: { viewCount: 1 } })
+      .exec()
+      .catch((err) => console.error('View count update error:', err));
+
+    return {
+      success: true,
+      message: 'success',
+      data: this.toDetailEntity(product)
+    }
+  }
+
+  async findReleted(slug: string, limit: number) {
+
+    const product = await this.productModel
+      .findOne({ slug })
+      .select('categoryId')
+      .lean()
+      .exec();
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    const relatedProduct = await this.productModel
+      .find({ categoryId: product.categoryId.toString() })
+      .select(
+        '_id name description slug categoryId brand price discount stock images isActive tags viewCount soldCount createdAt updatedAt',
+      )
+      .limit(limit)
+      .lean()
+      .exec()
+
+    return {
+      success: true,
+      message: 'success',
+      data: relatedProduct.map(p => this.toListEntity(p))
+    }
+  }
+
 
   async update(
     id: string,

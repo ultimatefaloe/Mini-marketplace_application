@@ -3,12 +3,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { z } from 'zod'
 import { formatCurrency } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { ProductCard } from '@/components/ui/product-card'
-import {
-  getProductBySlug,
-  getRelatedProducts,
-  getCategoryById,
-} from '@/data/product'
+// import { ProductCard } from '@/components/ui/product-card'
 import {
   Heart,
   Share2,
@@ -22,6 +17,9 @@ import {
   Eye,
 } from 'lucide-react'
 import { AddToCartButton } from '@/components/cart/add-to-cart-button'
+import { productBySlugQuery, relatedProductsQuery } from '@/api/queries'
+import type { IVariantOptions } from '@/types'
+import { ProductCard } from '@/components/ui/product-card'
 
 export const Route = createFileRoute('/(root)/_rootLayout/products/$slug')({
   component: ProductDetailPage,
@@ -34,34 +32,30 @@ export const Route = createFileRoute('/(root)/_rootLayout/products/$slug')({
         })
         .parse(params),
   },
-  loader: async ({ params }) => {
-    const product = getProductBySlug(params.slug)
-    if (!product) {
-      throw new Error('Product not found')
-    }
-
-    const relatedProducts = getRelatedProducts(product._id, 4)
-    const category = getCategoryById(product.categoryId)
-
-    return { product, relatedProducts, category }
+  loader: async ({ context, params }) => {
+    const [product, relatedProducts] = await Promise.all([
+      context.queryClient.ensureQueryData(productBySlugQuery(params.slug)),
+      context.queryClient.ensureQueryData(relatedProductsQuery(params.slug, 8)),
+    ])
+    return { product, relatedProducts }
   },
 })
 
 function ProductDetailPage() {
-  const { product, relatedProducts, category } = Route.useLoaderData()
+  const { product, relatedProducts } = Route.useLoaderData()
 
   const [selectedImage, setSelectedImage] = React.useState(0)
+  const [variants, setVariants] = React.useState<IVariantOptions>({
+    sizes: [],
+    colors: [],
+    genders: [],
+    materials: [],
+  })
   const [quantity, setQuantity] = React.useState(1)
-  const [selectedSize, setSelectedSize] = React.useState<string | null>(null)
-  const [selectedColor, setSelectedColor] = React.useState<string | null>(null)
 
   const discountedPrice = product.price * (1 - product.discount / 100)
   const savings = product.price - discountedPrice
   const isOutOfStock = product.stock === 0
-
-  // Mock variant options based on product tags
-  const sizes = ['XS', 'S', 'M', 'L', 'XL']
-  const colors = ['Black', 'White', 'Navy', 'Gray', 'Beige']
 
   const handleBuyNow = () => {
     if (isOutOfStock) return
@@ -70,8 +64,8 @@ function ProductDetailPage() {
     console.log('Buy now:', {
       product: product.name,
       quantity,
-      size: selectedSize,
-      color: selectedColor,
+      size: variants.sizes,
+      color: variants.colors,
       price: discountedPrice,
     })
   }
@@ -92,15 +86,15 @@ function ProductDetailPage() {
             <span className="text-gray-300">/</span>
             <Link to="/products">Products</Link>
 
-            {category && (
+            {product.category && (
               <>
                 <span className="text-gray-300">/</span>
                 <Link
                   to={`/categories/$slug`}
-                  params={{ slug: category?.slug }}
+                  params={{ slug: product.category.slug ?? '' }}
                   className="text-gray-500 hover:text-mmp-primary"
                 >
-                  {category.name}
+                  {product.category.name}
                 </Link>
               </>
             )}
@@ -125,11 +119,11 @@ function ProductDetailPage() {
                 asChild
               >
                 <Link
-                  to={category ? `/categories/$slug` : '/products'}
-                  params={{ slug: category?.slug }}
+                  to={product.category ? `/categories/$slug` : '/products'}
+                  params={{ slug: product.category?.slug }}
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to {category?.name || 'Products'}
+                  Back to {product.category?.name || 'Products'}
                 </Link>
               </Button>
 
@@ -176,11 +170,11 @@ function ProductDetailPage() {
               asChild
             >
               <Link
-                to={category ? '/categories/$slug' : '/products'}
-                params={{ slug: category?.slug }}
+                to={product.category ? '/categories/$slug' : '/products'}
+                params={{ slug: product.category?.slug }}
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to {category?.name || 'Products'}
+                Back to {product.category?.name || 'Products'}
               </Link>
             </Button>
 
@@ -256,65 +250,164 @@ function ProductDetailPage() {
             {/* Variant Selection */}
             <div className="mb-8 space-y-6">
               {/* Size Selection */}
-              <div>
-                <div className="mb-3 flex items-center justify-between">
-                  <label className="font-medium text-gray-900">Size</label>
-                  <button
-                    type="button"
-                    className="text-sm text-mmp-primary hover:text-mmp-primary2"
-                  >
-                    Size Guide
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {sizes.map((size) => (
+              {product.variantOptions.sizes && (
+                <div>
+                  <div className="mb-3 flex items-center justify-between">
+                    <label className="font-medium text-gray-900">Size</label>
                     <button
-                      key={size}
                       type="button"
-                      onClick={() => setSelectedSize(size)}
-                      className={`rounded-lg border px-4 py-3 font-medium transition-colors ${
-                        selectedSize === size
-                          ? 'border-mmp-primary bg-mmp-primary text-white'
-                          : 'border-gray-300 hover:border-gray-400'
-                      }`}
+                      className="text-sm text-mmp-primary hover:text-mmp-primary2"
                     >
-                      {size}
+                      Size Guide
                     </button>
-                  ))}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {product.variantOptions.sizes.map((size) => (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() =>
+                          setVariants((prev) => ({
+                            ...prev,
+                            sizes: prev.sizes.includes(size)
+                              ? prev.sizes.filter((s) => s !== size) // remove
+                              : [...prev.sizes, size], // add
+                          }))
+                        }
+                        className={`rounded-lg border px-4 py-3 font-medium transition-colors ${
+                          variants.sizes.includes(size)
+                            ? 'border-mmp-primary bg-mmp-primary text-white'
+                            : 'border-gray-300 hover:border-gray-400'
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Color Selection */}
-              <div>
-                <label className="mb-3 block font-medium text-gray-900">
-                  Color
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {colors.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() => setSelectedColor(color)}
-                      className={`flex items-center gap-2 rounded-lg border px-4 py-3 transition-colors ${
-                        selectedColor === color
-                          ? 'border-mmp-primary'
-                          : 'border-gray-300 hover:border-gray-400'
-                      }`}
-                    >
-                      <div
-                        className="h-4 w-4 rounded-full"
-                        style={{
-                          backgroundColor: color.toLowerCase(),
-                        }}
-                      />
-                      <span>{color}</span>
-                      {selectedColor === color && (
-                        <Check className="h-4 w-4 text-mmp-primary" />
-                      )}
-                    </button>
-                  ))}
+              {product.variantOptions.colors && (
+                <div>
+                  <label className="mb-3 block font-medium text-gray-900">
+                    Color
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {product.variantOptions.colors.map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() =>
+                          setVariants((prev) => ({
+                            ...prev,
+                            colors: prev.colors.includes(color)
+                              ? prev.colors.filter((s) => s !== color) // remove
+                              : [...prev.colors, color], // add
+                          }))
+                        }
+                        className={`flex items-center gap-2 rounded-lg border px-4 py-3 transition-colors ${
+                          variants.colors.includes(color)
+                            ? 'border-mmp-primary'
+                            : 'border-gray-300 hover:border-gray-400'
+                        }`}
+                      >
+                        <div
+                          className="h-4 w-4 rounded-full"
+                          style={{
+                            backgroundColor: color.toLowerCase(),
+                          }}
+                        />
+                        <span>{color}</span>
+                        {variants.colors.includes(color) && (
+                          <Check className="h-4 w-4 text-mmp-primary" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* Materials Selection */}
+              {product.variantOptions.materials && (
+                <div>
+                  <label className="mb-3 block font-medium text-gray-900">
+                    Materials
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {product.variantOptions.materials.map((material) => (
+                      <button
+                        key={material}
+                        type="button"
+                        onClick={() =>
+                          setVariants((prev) => ({
+                            ...prev,
+                            materials: prev.materials.includes(material)
+                              ? prev.materials.filter((s) => s !== material) // remove
+                              : [...prev.materials, material], // add
+                          }))
+                        }
+                        className={`flex items-center gap-2 rounded-lg border px-4 py-3 transition-colors ${
+                          variants.materials.includes(material)
+                            ? 'border-mmp-primary'
+                            : 'border-gray-300 hover:border-gray-400'
+                        }`}
+                      >
+                        <div
+                          className="h-4 w-4 rounded-full"
+                          style={{
+                            backgroundColor: material.toLowerCase(),
+                          }}
+                        />
+                        <span>{material}</span>
+                        {variants.materials.includes(material) && (
+                          <Check className="h-4 w-4 text-mmp-primary" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {product.variantOptions.genders && (
+                <div>
+                  <label className="mb-3 block font-medium text-gray-900">
+                    Genders
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {product.variantOptions.genders.map((g) => (
+                      <button
+                        key={g}
+                        type="button"
+                        onClick={() =>
+                          setVariants((prev) => ({
+                            ...prev,
+                            genders: prev.genders.includes(g)
+                              ? prev.genders.filter((s) => s !== g) // remove
+                              : [...prev.genders, g], // add
+                          }))
+                        }
+                        className={`flex items-center gap-2 rounded-lg border px-4 py-3 transition-colors ${
+                          variants.genders.includes(g)
+                            ? 'border-mmp-primary'
+                            : 'border-gray-300 hover:border-gray-400'
+                        }`}
+                      >
+                        <div
+                          className="h-4 w-4 rounded-full"
+                          style={{
+                            backgroundColor: g.toLowerCase(),
+                          }}
+                        />
+                        <span>{g}</span>
+                        {variants.genders.includes(g) && (
+                          <Check className="h-4 w-4 text-mmp-primary" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Quantity Selection */}
               <div>
@@ -356,6 +449,8 @@ function ProductDetailPage() {
                 <AddToCartButton
                   className="flex-1 bg-mmp-primary2 hover:bg-mmp-primary2"
                   product={product}
+                  quantity={quantity}
+                  variantOptions={variants}
                   size="lg"
                   aria-label={'Add to cart'}
                 />
@@ -456,10 +551,10 @@ function ProductDetailPage() {
               </h2>
               <Link
                 to="/categories/$slug"
-                params={{ slug: category ? category.slug : '' }}
+                params={{ slug: product?.category?.slug ?? '' }}
                 className="text-mmp-primary hover:text-mmp-primary2 hover:underline"
               >
-                View All in {category?.name}
+                View All in {product.category?.name}
               </Link>
             </div>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">

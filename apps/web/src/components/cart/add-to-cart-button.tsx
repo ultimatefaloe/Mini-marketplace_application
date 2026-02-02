@@ -132,11 +132,6 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
         <>
           {showIcon && <ShoppingBag className="mr-2 h-4 w-4" />}
           Add to Cart
-          {currentQuantity > 0 && (
-            <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
-              {currentQuantity}
-            </span>
-          )}
         </>
       )}
     </Button>

@@ -24,6 +24,7 @@ export class OrderItem {
 export const OrderItemSchema = SchemaFactory.createForClass(OrderItem);
 
 export enum OrderStatus {
+  PENDING = 'PENDING',
   PENDING_PAYMENT = 'PENDING_PAYMENT',
   PAID = 'PAID',
   PROCESSING = 'PROCESSING',
@@ -33,34 +34,10 @@ export enum OrderStatus {
   REFUNDED = 'REFUNDED',
 }
 
-@Schema({ _id: false })
-export class ShippingAddress {
-  @Prop({ required: true, trim: true })
-  fullName: string;
-
-  @Prop({ required: true, trim: true })
-  phone: string;
-
-  @Prop({ required: true, trim: true })
-  addressLine1: string;
-
-  @Prop({ trim: true })
-  addressLine2: string;
-
-  @Prop({ required: true, trim: true })
-  city: string;
-
-  @Prop({ required: true, trim: true })
-  state: string;
-
-  @Prop({ required: true, trim: true })
-  country: string;
-
-  @Prop({ required: true, trim: true })
-  postalCode: string;
+export enum DeliveryMethod {
+  PICK_UP = 'PICK_UP',
+  DELIVERY = 'DELIVERY',
 }
-
-export const ShippingAddressSchema = SchemaFactory.createForClass(ShippingAddress);
 
 @Schema({ timestamps: true })
 export class Order {
@@ -90,13 +67,24 @@ export class Order {
   @Prop({
     type: String,
     enum: OrderStatus,
-    default: OrderStatus.PENDING_PAYMENT,
+    default: OrderStatus.PENDING,
     index: true,
   })
   status: OrderStatus;
 
-  @Prop({ type: ShippingAddressSchema, required: true })
-  shippingAddress: ShippingAddress;
+   @Prop({
+    type: String,
+    enum: DeliveryMethod,
+    default: DeliveryMethod.PICK_UP,
+    index: true,
+  })
+  deliveryMethod: DeliveryMethod;
+
+  @Prop({
+    type: Types.ObjectId,
+    ref: 'Address'
+  })
+  addressId: Types.ObjectId;
 
   @Prop({
     type: Types.ObjectId,

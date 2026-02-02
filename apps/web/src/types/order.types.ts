@@ -1,5 +1,6 @@
+import type { IAddress } from "./address.type";
 import type { IBaseDocument, ITimestamps, ObjectId } from "./base.types";
-import type { OrderStatus } from "./enums";
+import type { DeliveryMethod, OrderStatus } from "./enums";
 import type { IPayment } from "./payment.types";
 import type { IUser } from "./user.types";
 
@@ -9,17 +10,6 @@ export interface IOrderItem {
   priceSnapshot: number;
   quantity: number;
   subtotal: number;
-}
-
-export interface IShippingAddress {
-  fullName: string;
-  phone: string;
-  addressLine1: string;
-  addressLine2?: string;
-  city: string;
-  state: string;
-  country: string;
-  postalCode: string;
 }
 
 /**
@@ -33,7 +23,7 @@ export interface IOrder extends IBaseDocument, ITimestamps {
   shippingFee: number;
   totalAmount: number;
   status: OrderStatus;
-  shippingAddress: IShippingAddress;
+  shippingAddress: IAddress;
   paymentId: ObjectId | null;
   paidAt: Date | string | null;
   shippedAt: Date | string | null;
@@ -71,10 +61,10 @@ export interface IOrderListItem {
 export interface ICreateOrderPayload {
   items: Array<{
     productId: ObjectId;
-    sku: string;
     quantity: number;
   }>;
-  shippingAddress: IShippingAddress;
+  addressId?: string;
+  deliveryMethod: DeliveryMethod;
   notes?: string;
 }
 

@@ -28,7 +28,7 @@ export class CategoryController {
     private readonly cloudinaryService: CloudinaryService) { }
 
   @Post()
-  @Roles(AppRole.ADMIN, AppRole.SUPER_ADMIN)
+  @Roles(AppRole.VENDOR, AppRole.ADMIN, AppRole.SUPER_ADMIN)
   @HttpCode(HttpStatus.CREATED)
   @UploadSingle('icon')
   async create(
@@ -66,7 +66,7 @@ export class CategoryController {
   }
 
   @Patch(':id')
-  @Roles(AppRole.ADMIN, AppRole.SUPER_ADMIN)
+  @Roles(AppRole.VENDOR, AppRole.ADMIN, AppRole.SUPER_ADMIN)
   update(
     @Param('id') id: string,
     @Body() updateCategoryDto: UpdateCategoryDto,
@@ -76,21 +76,21 @@ export class CategoryController {
   }
 
   @Delete(':id')
-  @Roles(AppRole.ADMIN, AppRole.SUPER_ADMIN)
+  @Roles(AppRole.VENDOR, AppRole.ADMIN, AppRole.SUPER_ADMIN)
   @HttpCode(HttpStatus.OK)
   remove(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     return this.categoryService.remove(id, user);
   }
 
   @Patch(':id/deactivate')
-  @Roles(AppRole.ADMIN, AppRole.SUPER_ADMIN)
+  @Roles(AppRole.VENDOR, AppRole.ADMIN, AppRole.SUPER_ADMIN)
   @HttpCode(HttpStatus.OK)
   softDelete(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     return this.categoryService.softDelete(id, user);
   }
 
   @Post('reorder')
-  @Roles(AppRole.ADMIN, AppRole.SUPER_ADMIN)
+  @Roles(AppRole.VENDOR, AppRole.ADMIN, AppRole.SUPER_ADMIN)
   @HttpCode(HttpStatus.OK)
   reorder(@Body() updates: Array<{ id: string; order: number }>) {
     return this.categoryService.reorder(updates);

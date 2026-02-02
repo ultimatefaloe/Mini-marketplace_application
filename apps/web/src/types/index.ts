@@ -12,3 +12,4 @@ export * from './api.types';
 export * from './utility.types';
 export * from './guards';
 export * from './constants.type';
+export * from './address.type';

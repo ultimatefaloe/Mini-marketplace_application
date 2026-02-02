@@ -1,26 +1,34 @@
-import React from 'react';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import type { OrderStatus } from '@/types';
-import { 
-  Clock, 
-  RefreshCw, 
-  Truck, 
-  CheckCircle, 
+import React from 'react'
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
+import type { OrderStatus } from '@/types'
+import {
+  Clock,
+  RefreshCw,
+  Truck,
+  CheckCircle,
   XCircle,
-  AlertCircle 
-} from 'lucide-react';
+  AlertCircle,
+} from 'lucide-react'
 
 interface OrderStatusBadgeProps {
-  status: OrderStatus;
-  className?: string;
+  status: OrderStatus
+  className?: string
 }
 
-const statusConfig: Record<OrderStatus, {
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  className: string;
-}> = {
+const statusConfig: Record<
+  OrderStatus,
+  {
+    label: string
+    icon: React.ComponentType<{ className?: string }>
+    className: string
+  }
+> = {
+  PENDING: {
+    label: 'Pending',
+    icon: Clock,
+    className: 'bg-amber-100 text-amber-800 hover:bg-amber-100',
+  },
   PENDING_PAYMENT: {
     label: 'Pending',
     icon: Clock,
@@ -52,23 +60,23 @@ const statusConfig: Record<OrderStatus, {
     className: 'bg-gray-100 text-gray-800 hover:bg-gray-100',
   },
   PAID: {
-    label: 'Failed',
+    label: 'Paid',
     icon: XCircle,
     className: 'bg-green-100 text-green-800 hover:bg-green-100',
   },
-};
+}
 
-export const OrderStatusBadge: React.FC<OrderStatusBadgeProps> = ({ 
-  status, 
-  className 
+export const OrderStatusBadge: React.FC<OrderStatusBadgeProps> = ({
+  status,
+  className,
 }) => {
-  const config = statusConfig[status] || statusConfig.PENDING_PAYMENT;
-  const Icon = config.icon;
+  const config = statusConfig[status] || statusConfig.PENDING_PAYMENT
+  const Icon = config.icon
 
   return (
     <Badge className={cn(config.className, className)}>
       <Icon className="mr-1 h-3 w-3" />
       {config.label}
     </Badge>
-  );
-};
+  )
+}

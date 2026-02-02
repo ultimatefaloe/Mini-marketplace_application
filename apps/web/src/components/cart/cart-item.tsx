@@ -6,6 +6,7 @@ import { useCart } from '@/hooks';
 
 interface CartItemProps {
   item: {
+    _id: string
     productId: string;
     nameSnapshot: string;
     priceSnapshot: number;
@@ -44,7 +45,7 @@ export const CartItem: React.FC<CartItemProps> = ({
 
     setIsUpdating(true);
     try {
-      await updateCartItem(item.productId, newQuantity);
+      await updateCartItem(item.productId, newQuantity, item._id);
       onQuantityChange?.(item.productId, newQuantity);
     } finally {
       setIsUpdating(false);
@@ -54,7 +55,7 @@ export const CartItem: React.FC<CartItemProps> = ({
   const handleRemove = async () => {
     setIsUpdating(true);
     try {
-      await removeFromCart(item.productId, item.nameSnapshot);
+      await removeFromCart(item._id, item.productId, item.nameSnapshot);
       onRemove?.(item.productId);
     } finally {
       setIsUpdating(false);

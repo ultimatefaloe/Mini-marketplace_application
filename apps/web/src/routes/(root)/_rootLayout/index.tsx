@@ -107,7 +107,7 @@ export default function HomeClient() {
   // Group products by category
   const productsByCategory = categories.reduce(
     (acc, category) => {
-      acc[category._id] = products
+      acc[category._id] = products.data
         .filter((p) => p.categoryId === category._id)
         .slice(0, 10)
 

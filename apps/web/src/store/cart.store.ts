@@ -51,6 +51,7 @@ interface CartState {
     itemCount: number;
     subtotal: number;
     items: Array<{
+      _id?: string;
       productId: string;
       nameSnapshot: string;
       priceSnapshot: number;
@@ -202,6 +203,7 @@ export const useCartStore = create<CartState>()(
         if (isAuthenticated && serverCart) {
           // Use server cart for authenticated users
           const items = serverCart.items.map(item => ({
+            _id: item._id,
             productId: item.productId.toString(),
             nameSnapshot: item.nameSnapshot,
             priceSnapshot: item.priceSnapshot,

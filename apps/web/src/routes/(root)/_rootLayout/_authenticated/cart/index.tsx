@@ -1,103 +1,135 @@
-import React from 'react';
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Input } from '@/components/ui/input';
-import { formatCurrency } from '@/lib/utils';
-import { 
-  ShoppingBag, 
-  Trash2, 
-  Plus, 
-  Minus, 
-  ArrowRight, 
+import React from 'react'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { Input } from '@/components/ui/input'
+import { formatCurrency } from '@/lib/utils'
+import {
+  ShoppingBag,
+  Trash2,
+  Plus,
+  Minus,
+  ArrowRight,
   ShoppingCart,
   Package,
   Shield,
   Truck,
   CreditCard,
-  ArrowLeft
-} from 'lucide-react';
-import { toast } from 'react-toastify';
-import { useAuth } from '@/hooks';
-import { useCart } from '@/hooks/use-cart';
+  ArrowLeft,
+} from 'lucide-react'
+import { toast } from 'react-toastify'
+import { useCart } from '@/hooks/use-cart'
 
-export const Route = createFileRoute('/(root)/_rootLayout/_authenticated/cart/')({
+export const Route = createFileRoute(
+  '/(root)/_rootLayout/_authenticated/cart/',
+)({
   component: CartPage,
-});
+})
 
 function CartPage() {
-  const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
-  const { 
-    items, 
-    subtotal, 
-    itemCount, 
-    isLoading, 
-    updateCartItem, 
-    removeFromCart, 
+  const navigate = useNavigate()
+  const {
+    items,
+    subtotal,
+    itemCount,
+    isLoading,
+    updateCartItem,
+    removeFromCart,
     clearCart,
-    isEmpty 
-  } = useCart();
+    isEmpty,
+  } = useCart()
 
-  const [couponCode, setCouponCode] = React.useState('');
-  const [isApplyingCoupon, setIsApplyingCoupon] = React.useState(false);
-  const shippingFee = itemCount > 0 ? 1500 : 0; // Fixed shipping fee
-  const tax = subtotal * 0.075; // 7.5% VAT
-  const total = subtotal + shippingFee + tax;
+  const [couponCode, setCouponCode] = React.useState('')
+  const [isApplyingCoupon, setIsApplyingCoupon] = React.useState(false)
+  const shippingFee = itemCount > 0 ? 1500 : 0 // Fixed shipping fee
+  const tax = subtotal * 0.025 // 2.5% VAT
+  const total = subtotal + shippingFee + tax
 
-  const handleUpdateQuantity = async (productId: string, newQuantity: number) => {
+  const handleUpdateQuantity = async (
+    productId: string,
+    newQuantity: number,
+    itemId?: string,
+  ) => {
     if (newQuantity < 1) {
-      await removeFromCart(productId, 'Item');
+      await removeFromCart(productId, itemId, 'Item')
     } else {
-      await updateCartItem(productId, newQuantity);
+      await updateCartItem(productId, newQuantity, itemId!)
     }
-  };
+  }
 
-  const handleRemoveItem = async (productId: string, productName: string) => {
-    await removeFromCart(productId, productName);
-  };
+  const handleRemoveItem = async (
+    productId: string,
+    productName: string,
+    itemId?: string,
+  ) => {
+    await removeFromCart(productId, itemId, productName)
+  }
 
-  const handleClearCart = async () => {
-    const confirmed = window.confirm('Are you sure you want to clear your cart?');
-    if (confirmed) {
-      await clearCart();
-    }
-  };
+  const handleClearCart = () => {
+    toast.warn(
+      <div className="space-y-3">
+        <p className="text-sm text-gray-800">Clear all items in cart</p>
+
+        <div className="flex gap-2 justify-end">
+          <Button size="sm" variant="outline" onClick={() => toast.dismiss()}>
+            Cancel
+          </Button>
+
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={async () => {
+              try {
+                await clearCart()
+                toast.dismiss()
+                toast.success('Action completed successfully')
+              } catch (err) {
+                toast.error(
+                  err instanceof Error ? err.message : 'Something went wrong',
+                )
+              } finally {
+              }
+            }}
+          >
+            Confrim
+          </Button>
+        </div>
+      </div>,
+      {
+        autoClose: false,
+        closeOnClick: false,
+        draggable: false,
+      },
+    )
+  }
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) {
-      toast.error('Please enter a coupon code');
-      return;
+      toast.error('Please enter a coupon code')
+      return
     }
 
-    setIsApplyingCoupon(true);
+    setIsApplyingCoupon(true)
     try {
       // TODO: Implement coupon validation API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast.success('Coupon applied successfully!');
-      setCouponCode('');
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      toast.success('Coupon applied successfully!')
+      setCouponCode('')
     } catch (error) {
-      toast.error('Invalid coupon code');
+      toast.error('Invalid coupon code')
     } finally {
-      setIsApplyingCoupon(false);
+      setIsApplyingCoupon(false)
     }
-  };
+  }
 
   const handleProceedToCheckout = () => {
     if (isEmpty) {
-      toast.error('Your cart is empty');
-      return;
+      toast.error('Your cart is empty')
+      return
     }
-
-    if (!isAuthenticated) {
-      toast.error('Please sign in to proceed to checkout');
-      navigate({ to: '/login', search: { redirect: '/cart/checkout' } });
-      return;
-    }
-
-    navigate({ to: '/cart/checkout' });
-  };
+    navigate({ to: '/cart/checkout' })
+  }
 
   if (isLoading) {
     return (
@@ -108,7 +140,7 @@ function CartPage() {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   if (isEmpty) {
@@ -123,10 +155,11 @@ function CartPage() {
               Your cart is empty
             </h1>
             <p className="text-gray-600 mb-8 max-w-md mx-auto">
-              Looks like you haven't added any items to your cart yet. Start shopping to add products.
+              Looks like you haven't added any items to your cart yet. Start
+              shopping to add products.
             </p>
-            <Button 
-              asChild 
+            <Button
+              asChild
               className="bg-mmp-primary hover:bg-mmp-primary2"
               size="lg"
             >
@@ -138,7 +171,7 @@ function CartPage() {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -167,7 +200,7 @@ function CartPage() {
               </p>
             </div>
             <Badge className="bg-white text-mmp-primary text-lg px-4 py-2">
-              {formatCurrency(subtotal)}
+              {formatCurrency(total)}
             </Badge>
           </div>
         </div>
@@ -241,12 +274,18 @@ function CartPage() {
                             <div className="mt-2 space-y-1">
                               {item.variantOptions.sizes && (
                                 <div className="text-sm text-gray-600">
-                                  Size: <span className="font-medium">{item.variantOptions.sizes}</span>
+                                  Size:{' '}
+                                  <span className="font-medium">
+                                    {item.variantOptions.sizes}
+                                  </span>
                                 </div>
                               )}
                               {item.variantOptions.colors && (
                                 <div className="text-sm text-gray-600">
-                                  Color: <span className="font-medium">{item.variantOptions.colors}</span>
+                                  Color:{' '}
+                                  <span className="font-medium">
+                                    {item.variantOptions.colors}
+                                  </span>
                                 </div>
                               )}
                             </div>
@@ -265,7 +304,13 @@ function CartPage() {
                               variant="outline"
                               size="icon"
                               className="h-8 w-8"
-                              onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
+                              onClick={() =>
+                                handleUpdateQuantity(
+                                  item.productId,
+                                  item.quantity - 1,
+                                  item._id,
+                                )
+                              }
                             >
                               <Minus className="h-3 w-3" />
                             </Button>
@@ -276,7 +321,13 @@ function CartPage() {
                               variant="outline"
                               size="icon"
                               className="h-8 w-8"
-                              onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
+                              onClick={() =>
+                                handleUpdateQuantity(
+                                  item.productId,
+                                  item.quantity + 1,
+                                  item._id,
+                                )
+                              }
                             >
                               <Plus className="h-3 w-3" />
                             </Button>
@@ -284,14 +335,22 @@ function CartPage() {
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                              onClick={() => handleRemoveItem(item.productId, item.nameSnapshot)}
+                              onClick={() =>
+                                handleRemoveItem(
+                                  item.productId,
+                                  item.nameSnapshot,
+                                  item._id,
+                                )
+                              }
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
                           <div className="mt-2 text-right">
                             <span className="text-sm font-semibold text-gray-900">
-                              {formatCurrency(item.priceSnapshot * item.quantity)}
+                              {formatCurrency(
+                                item.priceSnapshot * item.quantity,
+                              )}
                             </span>
                           </div>
                         </div>
@@ -358,22 +417,26 @@ function CartPage() {
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Subtotal</span>
-                    <span className="font-medium">{formatCurrency(subtotal)}</span>
+                    <span className="font-medium">
+                      {formatCurrency(subtotal)}
+                    </span>
                   </div>
-                  <div className="flex justify-between">
+                  {/* <div className="flex justify-between">
                     <span className="text-gray-600">Shipping</span>
                     <span className="font-medium">
                       {shippingFee > 0 ? formatCurrency(shippingFee) : 'Free'}
                     </span>
-                  </div>
+                  </div> */}
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Tax (VAT 7.5%)</span>
+                    <span className="text-gray-600">Tax (VAT 2.5%)</span>
                     <span className="font-medium">{formatCurrency(tax)}</span>
                   </div>
                   <Separator />
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
-                    <span className="text-mmp-primary2">{formatCurrency(total)}</span>
+                    <span className="text-mmp-primary2">
+                      {formatCurrency(total)}
+                    </span>
                   </div>
                 </div>
 
@@ -397,11 +460,7 @@ function CartPage() {
 
                 {/* Continue Shopping */}
                 <div className="mt-6 pt-6 border-t border-gray-200">
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    asChild
-                  >
+                  <Button variant="outline" className="w-full" asChild>
                     <Link to="/products">
                       <ShoppingBag className="mr-2 h-4 w-4" />
                       Continue Shopping
@@ -412,9 +471,7 @@ function CartPage() {
 
               {/* Order Notes */}
               <div className="mt-4 bg-white rounded-xl border border-gray-200 p-6">
-                <h4 className="font-semibold text-gray-900 mb-3">
-                  Need Help?
-                </h4>
+                <h4 className="font-semibold text-gray-900 mb-3">Need Help?</h4>
                 <ul className="space-y-2 text-sm text-gray-600">
                   <li>• Free shipping on orders over ₦50,000</li>
                   <li>• 14-day return policy</li>
@@ -427,5 +484,5 @@ function CartPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }

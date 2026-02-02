@@ -10,6 +10,7 @@ import type {
   IPasswordResetRequest,
   IPasswordResetPayload,
   ICreateAdminPayload,
+  IUser,
 } from '@/types';
 
 // Queries
@@ -23,12 +24,13 @@ export const useValidateToken = () => {
 };
 
 // Mutations
+// ========== USER ROUTES ==========
 export const useUserSignup = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: ISignupCredentials) =>
-      apiClient.postData<IUserAuthResponse>('/auth/user/signup', data),
+      apiClient.post<IUser>('/auth/user/signup', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.validate() });
     },
@@ -40,7 +42,7 @@ export const useUserLogin = () => {
 
   return useMutation({
     mutationFn: (data: ILoginCredentials) =>
-      apiClient.postData<IUserAuthResponse>('/auth/user/signin', data),
+      apiClient.post<IUser>('/auth/user/signin', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.validate() });
     },
@@ -59,6 +61,44 @@ export const useUserGoogleAuth = () => {
   });
 };
 
+// ========== VENDOR ROUTES ==========
+export const useVendorSignup = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: ISignupCredentials) =>
+      apiClient.post<IUser>('/auth/vendor/signup', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.validate() });
+    },
+  });
+};
+
+export const useVendorLogin = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: ILoginCredentials) =>
+      apiClient.post<IUser>('/auth/vendor/signin', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.validate() });
+    },
+  });
+};
+
+export const useVendorGoogleAuth = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () =>
+      apiClient.getData<IUserAuthResponse>('/auth/vendor/google'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.validate() });
+    },
+  });
+};
+
+// ========== ADMIN ROUTES ==========
 export const useAdminSignup = () => {
   const queryClient = useQueryClient();
 

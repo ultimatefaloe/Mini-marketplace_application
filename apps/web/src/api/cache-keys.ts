@@ -34,8 +34,25 @@ export const queryKeys = {
     detail: (id: string) => ['admins', 'detail', id] as const,
   },
 
+  vendor: {
+    all: (filters?: Record<string, any>) => ['vendors', 'list', filters] as const,
+    detail: (id: string) => ['vendors', 'detail', id] as const,
+  },
+
   users: {
     all: (filters?: Record<string, any>) => ['users', 'list', filters] as const,
     detail: (id: string) => ['users', 'detail', id] as const,
+  },
+
+  addresses: {
+    all: ['addresses'] as const,
+    lists: () => [...queryKeys.addresses.all, 'list'] as const,
+    detail: (id: string) => [...queryKeys.addresses.all, 'detail', id] as const,
+  },
+
+  payments: {
+    all: ['payments'] as const,
+    lists: (filters?: Record<string, any>) => [...queryKeys.payments.all, 'list', filters] as const,
+    detail: (id: string) => [...queryKeys.payments.all, 'detail', id] as const,
   },
 };

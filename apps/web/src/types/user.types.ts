@@ -40,7 +40,7 @@ export interface IUpdateUserPayload {
  * User login response
  */
 export interface IUserAuthResponse {
-  user: IUser;
-  accessToken: string;
-  refreshToken: string;
+  success: boolean;
+  message: string;
+  data: IUser
 }

@@ -118,12 +118,12 @@ export const featuredProductsQuery = (limit?: number) => ({
 /**
  * Query options factory for related products
  */
-export const relatedProductsQuery = (productId: string, limit?: number) => ({
-  queryKey: queryKeys.products.related(productId, limit),
+export const relatedProductsQuery = (slug: string, limit?: number) => ({
+  queryKey: queryKeys.products.related(slug, limit),
   queryFn: async (): Promise<FrontendSafe<IProductListItem>[]> => {
     const params = limit ? `?limit=${limit}` : '';
     const response = await apiClient.get<FrontendSafe<IProductListItem>[]>(
-      `/products/${productId}/related${params}`
+      `/products/${slug}/related${params}`
     );
 
     if (!response.success) {

@@ -10,14 +10,14 @@ import {
 /**
  * Hook for fetching orders list
  */
-export const useOrders = (filters?: IOrderQueryFilters) => {
+export const useOrdersQuery = (filters?: IOrderQueryFilters) => {
   return useQuery(ordersQuery(filters));
 };
 
 /**
  * Hook for fetching a single order by ID
  */
-export const useOrder = (id: string, enabled = true) => {
+export const useOrderQuery = (id: string, enabled = true) => {
   return useQuery({
     ...orderQuery(id),
     enabled: !!id && enabled,
@@ -27,7 +27,7 @@ export const useOrder = (id: string, enabled = true) => {
 /**
  * Hook for fetching a single order by order number
  */
-export const useOrderByNumber = (orderNumber: string, enabled = true) => {
+export const useOrderByNumberQuery = (orderNumber: string, enabled = true) => {
   return useQuery({
     ...orderByNumberQuery(orderNumber),
     enabled: !!orderNumber && enabled,
@@ -37,6 +37,6 @@ export const useOrderByNumber = (orderNumber: string, enabled = true) => {
 /**
  * Hook for fetching order statistics
  */
-export const useOrderStats = (userId?: string) => {
+export const useOrderStatsQuery = (userId?: string) => {
   return useQuery(orderStatsQuery(userId));
 };

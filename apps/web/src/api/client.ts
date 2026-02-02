@@ -19,7 +19,7 @@ export class ApiError extends Error {
  * Type guard for API error responses
  */
 function isApiErrorResponse(data: any): data is IApiErrorResponse {
-  return data && data.success === false && 'error' in data;
+  return data && 'error' in data;
 }
 
 class ApiClient {
@@ -71,7 +71,7 @@ class ApiClient {
     } catch (error) {
       // Re-throw ApiError as-is
       if (error instanceof ApiError) {
-        throw error;
+        throw error.message;
       }
 
       // Handle network errors or JSON parsing errors

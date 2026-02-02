@@ -27,7 +27,7 @@ export const addToCartMutation = async (data: IAddToCartPayload): Promise<Fronte
 export const updateCartItemMutation = async (
   data: IUpdateCartItemPayload
 ): Promise<FrontendSafe<ICart>> => {
-  const response = await apiClient.patch<FrontendSafe<ICart>>(`/carts${data.productId}`, data);
+  const response = await apiClient.patch<FrontendSafe<ICart>>(`/carts/${data.itemId}`, data);
 
   if (!response.success) {
     throw new Error(response.error.message);
@@ -39,8 +39,8 @@ export const updateCartItemMutation = async (
 /**
  * Mutation function for removing item from cart
  */
-export const removeFromCartMutation = async (productId: string): Promise<FrontendSafe<ICart>> => {
-  const response = await apiClient.delete<FrontendSafe<ICart>>(`/carts/${productId}`);
+export const removeFromCartMutation = async (itemId: string): Promise<FrontendSafe<ICart>> => {
+  const response = await apiClient.delete<FrontendSafe<ICart>>(`/carts/${itemId}`);
 
   if (!response.success) {
     throw new Error(response.error.message);

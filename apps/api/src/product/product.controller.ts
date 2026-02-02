@@ -29,7 +29,7 @@ export class ProductController {
 
   @Post()
   @UseGuards(RolesGuard)
-  @Roles(AppRole.ADMIN, AppRole.SUPER_ADMIN)
+  @Roles(AppRole.VENDOR, AppRole.ADMIN, AppRole.SUPER_ADMIN)
   @HttpCode(HttpStatus.CREATED)
   @Upload('images', 8)
   async create(
@@ -49,21 +49,32 @@ export class ProductController {
     return this.productService.create(dto, images, user);
   }
 
-
-
   @Get()
+  @Public()
   findAll(@Query() query: QueryProductDto) {
     return this.productService.findAll(query);
+  }
+
+  @Get('slug/:slug')
+  @Public()
+  findOneBySlug(@Param('slug') slug: string) {
+    return this.productService.findOneBySlug(slug);
+  }
+
+  @Get(':slug/related')
+  @Public()
+  related(@Param('slug') slug: string, @Query('limit') limit: number) {
+    return this.productService.findReleted(slug, limit);
   }
 
   @Get(':id')
   @Public()
   findOne(@Param('id') id: string) {
-    return this.productService.findOne(id);
+    return this.productService.findOneById(id);
   }
 
   @Patch(':id')
-  @UseGuards(RolesGuard)
+  @Roles(AppRole.VENDOR, AppRole.ADMIN, AppRole.SUPER_ADMIN)
   @Upload('images', 8)
   async update(
     @Param('id') id: string,
@@ -88,21 +99,21 @@ export class ProductController {
 
 
   @Delete(':id')
-  @UseGuards(RolesGuard)
+  @Roles(AppRole.VENDOR, AppRole.ADMIN, AppRole.SUPER_ADMIN)
   @HttpCode(HttpStatus.OK)
   remove(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     return this.productService.remove(id, user);
   }
 
   @Patch(':id/deactivate')
-  @UseGuards(RolesGuard)
+  @Roles(AppRole.VENDOR, AppRole.ADMIN, AppRole.SUPER_ADMIN)
   @HttpCode(HttpStatus.OK)
   softDelete(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     return this.productService.softDelete(id, user);
   }
 
-  @Patch(':id/stock/:sku')
-  @UseGuards(RolesGuard)
+  @Patch(':id/stock')
+  @Roles(AppRole.VENDOR, AppRole.ADMIN, AppRole.SUPER_ADMIN)
   @HttpCode(HttpStatus.OK)
   updateStock(
     @Param('id') id: string,

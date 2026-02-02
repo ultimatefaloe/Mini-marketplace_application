@@ -77,7 +77,6 @@ export const useCreateOrder = () => {
     mutationFn: createOrderMutation,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
-      queryClient.invalidateQueries({ queryKey: queryKeys.cart.detail() });
     },
   });
 };

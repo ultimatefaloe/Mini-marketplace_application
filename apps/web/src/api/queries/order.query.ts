@@ -14,9 +14,9 @@ import type {
  */
 export const ordersQuery = (filters?: IOrderQueryFilters) => ({
   queryKey: queryKeys.orders.all(filters),
-  queryFn: async (): Promise<IPaginatedResponse<FrontendSafe<IOrderListItem>>> => {
+  queryFn: async (): Promise<IPaginatedResponse<FrontendSafe<IOrderListItem[]>>> => {
     const params = new URLSearchParams(filters as any);
-    const response = await apiClient.get<IPaginatedResponse<FrontendSafe<IOrderListItem>>>(
+    const response = await apiClient.get<IPaginatedResponse<FrontendSafe<IOrderListItem[]>>>(
       `/orders?${params.toString()}`
     );
 

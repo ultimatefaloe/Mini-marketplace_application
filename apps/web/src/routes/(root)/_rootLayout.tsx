@@ -1,5 +1,5 @@
-import Footer from '@/components/ui/layout/Footer'
-import Header from '@/components/ui/layout/Header'
+import Footer from '@/components/layout/Footer'
+import Header from '@/components/layout/Header'
 import { CartProvider } from '@/providers/cart-provider'
 import { createFileRoute, Outlet } from '@tanstack/react-router'
 

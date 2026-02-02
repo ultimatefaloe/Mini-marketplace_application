@@ -37,22 +37,22 @@ export class CartsController {
     return this.cartService.getCart(user);
   }
 
-  @Patch(':productId')
+  @Patch(':itemId')
   async updateCartItem(
-    @Param('productId') productId: string,
+    @Param('itemId') itemId: string,
     @Body() updateCartItemDto: UpdateCartItemDto,
     @CurrentUser() user: JwtPayload
   ) {
-    return this.cartService.updateCartItem(productId, updateCartItemDto, user);
+    return this.cartService.updateCartItem(itemId, updateCartItemDto, user);
   }
 
-  @Delete(':productId')
+  @Delete(':itemId')
   @HttpCode(HttpStatus.OK)
   async removeFromCart(
-    @Param('productId') productId: string,
+    @Param('itemId') itemId: string,
     @CurrentUser() user: JwtPayload
   ) {
-    return this.cartService.removeFromCart(productId, user);
+    return this.cartService.removeFromCart(itemId, user);
   }
 
   @Delete()

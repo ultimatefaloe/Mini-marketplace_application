@@ -26,8 +26,6 @@ export interface IPaymentWithOrder extends Omit<IPayment, 'orderId'> {
  */
 export interface IInitializePaymentPayload {
   orderId: ObjectId;
-  amount: number;
-  email: string;
   callbackUrl?: string;
 }
 
@@ -36,8 +34,8 @@ export interface IInitializePaymentPayload {
  */
 export interface IPaymentInitializationResponse {
   reference: string;
-  authorizationUrl: string;
-  accessCode: string;
+  authorization_url: string;
+  access_code: string;
 }
 
 /**
