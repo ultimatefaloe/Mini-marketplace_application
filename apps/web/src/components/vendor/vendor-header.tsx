@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '@/hooks';
 import { Button } from '@/components/ui/button';
-import { Bell, LogOut, Menu, Search, User } from 'lucide-react';
+import { Bell, Menu, Search, User } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,9 +11,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
+import { Link } from '@tanstack/react-router';
 
 export const VendorHeader: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { vendor } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white shadow-sm">
@@ -25,7 +26,7 @@ export const VendorHeader: React.FC = () => {
           <div className="relative w-64">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
             <Input
-              placeholder="Search admin dashboard..."
+              placeholder="Search products, orders..."
               className="pl-10 bg-gray-50 border-gray-300"
             />
           </div>
@@ -44,21 +45,19 @@ export const VendorHeader: React.FC = () => {
                   <User className="h-4 w-4 text-white" />
                 </div>
                 <div className="hidden md:block text-left">
-                  <p className="text-sm font-medium">{user?.fullName}</p>
-                  <p className="text-xs text-gray-500">Admin</p>
+                  <p className="text-sm font-medium">{vendor?.businessName}</p>
+                  <p className="text-xs text-gray-500">Vendor</p>
                 </div>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-              <DropdownMenuItem>Billing</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={logout} className="text-red-600">
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
+              <DropdownMenuItem asChild>
+                <Link to="/vendor/settings">Settings</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/vendor/wallet">Wallet</Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

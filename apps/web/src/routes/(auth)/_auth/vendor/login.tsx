@@ -1,219 +1,150 @@
-import React from 'react'
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useNavigate, Navigate } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
-import { useAdminLogin } from '@/api/queries/auth.query'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { useAuth } from '@/hooks'
-import { AuthFormWrapper, GoogleAuthButton } from '@/components/auth'
-import { Eye, EyeOff, Building2 } from 'lucide-react'
+import { Loader2, Package } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
+import { useVendorLogin } from '@/api/queries'
 import { toast } from 'react-toastify'
 
-const adminLoginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required'),
-  rememberMe: z.boolean().optional(),
-})
-
-type AdminLoginFormData = z.infer<typeof adminLoginSchema>
-
 export const Route = createFileRoute('/(auth)/_auth/vendor/login')({
-  component: AdminLoginPage,
-  validateSearch: z.object({
-    redirect: z.string().optional(),
-  }),
+  component: VendorLogin,
 })
 
-function AdminLoginPage() {
+const loginSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+})
+
+type LoginFormData = z.infer<typeof loginSchema>
+
+function VendorLogin() {
+  const { isAuthenticated, isVendor, setAuthVendor } = useAuth()
   const navigate = useNavigate()
-  const [showPassword, setShowPassword] = React.useState(false)
-  const { mutate: login, isPending } = useAdminLogin()
-  const { setAuth } = useAuth()
+  const { mutateAsync: login, isPending } = useVendorLogin()
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     setError,
-  } = useForm<AdminLoginFormData>({
-    resolver: zodResolver(adminLoginSchema),
-    defaultValues: {
-      rememberMe: false,
-    },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
   })
 
-  const onSubmit = async (data: AdminLoginFormData) => {
+  if (isAuthenticated && isVendor) {
+    return <Navigate to="/vendor" />
+  }
+
+  const onSubmit = async (data: LoginFormData) => {
     try {
-      await login(data, {
+      login(data, {
         onSuccess: (response) => {
+          console.log(response)
           if (response.success) {
-            setAuth(response.data)
-            toast.success('Welcome back!, Successfully logged in as admin.')
-            navigate({ to: '/admin' })
+            setAuthVendor(response.data)
+            toast.success(response.message || 'Login Successfully!')
+            navigate({ to: '/vendor' })
           }
         },
         onError: (error: any) => {
+          console.error(error)
           toast.error(error.message || 'Login failed, Invalid credentials')
         },
       })
     } catch (error: any) {
       setError('root', {
-        type: 'manual',
-        message: error.message || 'Admin login failed. Please try again.',
+        message: error.message || 'Login failed. Please try again.',
       })
     }
   }
 
-  const footer = (
-    <div className="text-center space-y-3">
-      <div className="text-sm text-gray-600">
-        <Link
-          to="/admin/forgot-password"
-          className="font-medium text-mmp-primary hover:text-mmp-primary2 hover:underline"
-        >
-          Forgot your password?
-        </Link>
-      </div>
-      <div className="text-sm text-gray-600">
-        Don't have an admin account?{' '}
-        <Link
-          to="/admin/register"
-          className="font-medium text-mmp-primary hover:text-mmp-primary2 hover:underline"
-        >
-          Request Access
-        </Link>
-      </div>
-      <div className="text-sm text-gray-600 pt-2 border-t border-gray-200">
-        Are you a customer?{' '}
-        <Link
-          to="/login"
-          className="font-medium text-mmp-secondary hover:text-mmp-accent hover:underline"
-        >
-          Customer Login
-        </Link>
-      </div>
-    </div>
-  )
-
   return (
-    <AuthFormWrapper
-      title={
-        <div className="flex items-center justify-center gap-2">
-          <Building2 className="h-6 w-6" />
-          <span>Business Portal</span>
-        </div>
-      }
-      description="Sign in to manage your FashionKet store"
-      backLink="/"
-      backText="Back to store"
-      footer={footer}
-    >
-      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-        <p className="text-sm text-blue-700">
-          <strong>Note:</strong> This portal is for store administrators only.
-        </p>
-      </div>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {errors.root && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-sm text-red-600">{errors.root.message}</p>
+    <div className="min-h-screen bg-gradient-to-br from-mmp-primary/5 via-mmp-secondary/5 to-mmp-accent/5 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1 text-center">
+          <div className="flex justify-center mb-4">
+            <div className="h-12 w-12 rounded-xl bg-mmp-primary flex items-center justify-center">
+              <Package className="h-6 w-6 text-white" />
+            </div>
           </div>
-        )}
+          <CardTitle className="text-2xl font-bold text-mmp-primary2">
+            Vendor Login
+          </CardTitle>
+          <CardDescription>
+            Sign in to your vendor account to manage your store
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {errors.root && (
+              <div className="p-3 rounded-md bg-red-50 border border-red-200">
+                <p className="text-sm text-red-600">{errors.root.message}</p>
+              </div>
+            )}
 
-        <div className="space-y-2">
-          <Label htmlFor="email" className="text-gray-700">
-            Admin Email
-          </Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="admin@fashionket.com"
-            {...register('email')}
-            className={errors.email ? 'border-red-500' : 'border-gray-300'}
-          />
-          {errors.email && (
-            <p className="text-sm text-red-500">{errors.email.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="password" className="text-gray-700">
-            Password
-          </Label>
-          <div className="relative">
-            <Input
-              id="password"
-              type={showPassword ? 'text' : 'password'}
-              placeholder="••••••••"
-              {...register('password')}
-              className={
-                errors.password
-                  ? 'border-red-500 pr-10'
-                  : 'border-gray-300 pr-10'
-              }
-            />
-            <button
-              type="button"
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-              onClick={() => setShowPassword(!showPassword)}
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-            >
-              {showPassword ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="vendor@example.com"
+                {...register('email')}
+                disabled={isPending}
+              />
+              {errors.email && (
+                <p className="text-sm text-red-600">{errors.email.message}</p>
               )}
-            </button>
-          </div>
-          {errors.password && (
-            <p className="text-sm text-red-500">{errors.password.message}</p>
-          )}
-        </div>
+            </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Checkbox id="rememberMe" {...register('rememberMe')} />
-            <Label
-              htmlFor="rememberMe"
-              className="text-sm font-normal text-gray-600 cursor-pointer"
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                {...register('password')}
+                disabled={isPending}
+              />
+              {errors.password && (
+                <p className="text-sm text-red-600">
+                  {errors.password.message}
+                </p>
+              )}
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full bg-mmp-primary hover:bg-mmp-primary2"
+              disabled={isPending}
             >
-              Remember me
-            </Label>
-          </div>
-        </div>
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Sign In
+            </Button>
 
-        <Button
-          type="submit"
-          className="w-full bg-mmp-primary hover:bg-mmp-primary2 shadow-sm"
-          disabled={isPending}
-          size="lg"
-        >
-          {isPending ? (
-            <>
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
-              Signing in...
-            </>
-          ) : (
-            'Sign in as Admin'
-          )}
-        </Button>
-      </form>
-
-      <div className="relative my-6">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-300"></div>
-        </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="px-3 bg-white text-gray-500">Or continue with</span>
-        </div>
-      </div>
-
-      <GoogleAuthButton variant="admin" disabled={isPending} />
-    </AuthFormWrapper>
+            <div className="text-center text-sm">
+              <span className="text-gray-600">Don't have an account? </span>
+              <Link
+                to="/vendor/register"
+                className="text-mmp-primary hover:underline font-medium"
+              >
+                Sign up
+              </Link>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   )
 }

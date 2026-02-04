@@ -1,23 +1,28 @@
-import type { IBaseDocument, ITimestamps } from "./base.types";
+import type { IBaseDocument, IBaseUser, ITimestamps } from "./base.types";
 import type { UserRole } from "./enums";
 
-export interface IVendorPermissions {
-  manageProducts: boolean;
-  manageOrders: boolean;
-  managePayments: boolean;
+
+export interface ILocation {
+  street: string;
+  city: string;
+  state: string;
+  country: string;
+  lat?: string;
+  lng?: string;
 }
 
 /**
  * Admin base interface (excluding sensitive fields)
  */
-export interface IVendor extends IBaseDocument, ITimestamps {
-  fullName: string;
-  email: string;
+export interface IVendor extends IBaseDocument, ITimestamps, IBaseUser {
+  businessName: string;
+  description?: string;
+  businessLogo?: string
   phone: string;
-  role: UserRole;
-  permissions?: IVendorPermissions;
+  role: UserRole.VENDOR;
   isActive: boolean;
   googleId?: string | null;
+  location: ILocation
 }
 
 /**
@@ -36,8 +41,6 @@ export interface ICreateVendorPayload {
   phone: string;
   businessName: string;
   description?: string;
-  // businessLogo?: (this is will be an uploaded file)
-  // idDocument?: (this is will be an uploaded file)
   password: string;
   location: IVendorAddress
 }
@@ -53,17 +56,14 @@ export interface IVendorAddress {
  * Admin update payload
  */
 export interface IUpdateVendorPayload {
-  fullName?: string;
-  phone?: string;
-  permissions?: Partial<IVendorPermissions>;
-  isActive?: boolean;
+
 }
 
 /**
  * Admin login response
  */
 export interface IVendorAuthResponse {
-   success: boolean;
-    message: string;
-    data: IVendor
+  success: boolean;
+  message: string;
+  data: IVendor
 }

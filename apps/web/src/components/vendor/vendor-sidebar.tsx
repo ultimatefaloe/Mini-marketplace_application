@@ -2,82 +2,71 @@ import React from 'react';
 import { Link, useRouter } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import {
-  BarChart3,
   Home,
   Package,
   ShoppingCart,
-  Users,
+  Wallet,
   Settings,
-  CreditCard,
-  Tag,
+  User,
   LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks';
 
-const adminNavItems = [
+const vendorNavItems = [
   {
     title: 'Dashboard',
-    href: '/admin',
+    href: '/vendor',
     icon: Home,
   },
   {
     title: 'Products',
-    href: '/admin/products',
+    href: '/vendor/products',
     icon: Package,
   },
   {
-    title: 'Categories',
-    href: '/admin/categories',
-    icon: Tag,
-  },
-  {
     title: 'Orders',
-    href: '/admin/orders',
+    href: '/vendor/orders',
     icon: ShoppingCart,
   },
   {
-    title: 'Customers',
-    href: '/admin/customers',
-    icon: Users,
-  },
-  {
-    title: 'Analytics',
-    href: '/admin/analytics',
-    icon: BarChart3,
-  },
-  {
-    title: 'Payments',
-    href: '/admin/payments',
-    icon: CreditCard,
+    title: 'Wallet',
+    href: '/vendor/wallet',
+    icon: Wallet,
   },
   {
     title: 'Settings',
-    href: '/admin/settings',
+    href: '/vendor/settings',
     icon: Settings,
   },
 ];
 
 export const VendorSideBar: React.FC = () => {
   const router = useRouter();
+  const { vendor, logout } = useAuth();
   const currentPath = router.state.location.pathname;
 
   return (
     <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
       <div className="flex flex-col flex-1 min-h-0 border-r border-gray-200 bg-white">
         <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+          {/* Logo */}
           <div className="flex items-center flex-shrink-0 px-6 mb-8">
             <div className="flex items-center gap-3">
               <div className="h-8 w-8 rounded-lg bg-mmp-primary flex items-center justify-center">
                 <Package className="h-5 w-5 text-white" />
               </div>
               <span className="text-xl font-bold text-mmp-primary2">
-                FashionKet Admin
+                Vendor Portal
               </span>
             </div>
           </div>
+
+          {/* Navigation */}
           <nav className="mt-5 flex-1 px-4 space-y-1">
-            {adminNavItems.map((item) => {
-              const isActive = currentPath.startsWith(item.href);
+            {vendorNavItems.map((item) => {
+              const isActive = currentPath === item.href || 
+                (item.href !== '/vendor' && currentPath.startsWith(item.href));
               return (
                 <Link
                   key={item.href}
@@ -101,13 +90,28 @@ export const VendorSideBar: React.FC = () => {
             })}
           </nav>
         </div>
-        <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
+
+        {/* Profile Section */}
+        <div className="flex-shrink-0 border-t border-gray-200 p-4">
+          <div className="flex items-center justify-between mb-3 px-2">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-mmp-primary flex items-center justify-center">
+                <User className="h-5 w-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {vendor?.businessName}
+                </p>
+                <p className="text-xs text-gray-500 truncate">
+                  ID: {vendor?._id?.toString().slice(-8)}
+                </p>
+              </div>
+            </div>
+          </div>
           <Button
             variant="ghost"
             className="w-full justify-start text-gray-700 hover:text-red-600 hover:bg-red-50"
-            onClick={() => {
-              // Logout logic will be added
-            }}
+            onClick={logout}
           >
             <LogOut className="mr-3 h-5 w-5" />
             Logout
