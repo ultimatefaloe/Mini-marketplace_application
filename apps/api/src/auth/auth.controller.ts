@@ -61,7 +61,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @UploadedFile() file: Express.Multer.File
   ) {
-     const result = await this.cloudinaryService.uploadFile(file, 'mini-marketplace/vendor');
+    const result = await this.cloudinaryService.uploadFile(file, 'mini-marketplace/vendor');
     const logoUrl: string = result ? result?.secure_url : dto.businessLogo!
     const { data, tokens } = await this.authService.signUpVendor(dto, logoUrl);
     this.setAuthCookies(res, tokens);
