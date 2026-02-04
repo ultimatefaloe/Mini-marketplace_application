@@ -1,11 +1,10 @@
-import type { IBaseDocument, ITimestamps } from "./base.types";
+import type { IBaseDocument, IBaseUser, ITimestamps } from "./base.types";
 import type { UserRole } from "./enums";
 
-export interface IUser extends IBaseDocument, ITimestamps {
+export interface IUser extends IBaseDocument, ITimestamps, IBaseUser {
   fullName: string;
   phone?: string;
-  email: string;
-  role: UserRole;
+  role: UserRole.USER;
   isActive: boolean;
   googleId?: string | null;
 }

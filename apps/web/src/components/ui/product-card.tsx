@@ -9,10 +9,14 @@ import {
   Zap,
   TrendingUp,
   CheckCircle,
+  Edit,
+  Trash2,
 } from 'lucide-react'
 import type { IProductListItem } from '@/types'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { AddToCartButton } from '../cart/add-to-cart-button'
+import { useAuth } from '@/hooks'
+import { UserRole } from '@/types'
 
 // Simplified interface with only relevant data
 interface ProductCardProps {
@@ -20,6 +24,8 @@ interface ProductCardProps {
   className?: string
   size?: 'sm' | 'md' | 'lg'
   variant?: 'default' | 'compact' | 'featured'
+  onEdit?: (productId: string) => void
+  onDelete?: (productId: string) => void
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -27,10 +33,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   size = 'md',
   variant = 'default',
   className,
+  onEdit,
+  onDelete,
 }) => {
   const [isFavorite, setIsFavorite] = useState(false)
   const [imageLoaded, setImageLoaded] = useState(false)
   const navigate = useNavigate()
+  const { role } = useAuth()
 
   const finalPrice =
     product.discount > 0
@@ -39,6 +48,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   const isOutOfStock = product.stock === 0
   const isLowStock = product.stock > 0 && product.stock <= 10
+  const showVendorActions = role !== UserRole.USER
 
   // Size configurations
   const sizeConfig = {
@@ -116,12 +126,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const status = getProductStatus()
 
   const productViewHandler = () => {
-    navigate({
-      to: '/products/$slug',
-      params: {
-        slug: product.slug,
-      },
-    })
+    if (showVendorActions) {
+      navigate({
+        to: '/vendor/products/$slug',
+        params: {
+          slug: product.slug,
+        },
+      })
+    } else {
+      navigate({
+        to: '/products/$slug',
+        params: {
+          slug: product.slug,
+        },
+      })
+    }
   }
 
   return (
@@ -153,31 +172,67 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </Badge>
         )}
 
-        {/* Cart button */}
-        <div className="absolute bottom-4 left-0 right-0 px-4 z-10">
-          <AddToCartButton
-            className="w-full bg-white text-mmp-primary2 hover:bg-mmp-neutral hover:text-mmp-primary2 shadow-md"
-            size="default"
-            product={product}
-            aria-label={'Add to cart'}
-          />
-        </div>
+        {/* Vendor Actions */}
+        {showVendorActions && (
+          <div className="absolute top-3 right-3 z-10 flex gap-2">
+            {onEdit && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onEdit(product._id.toString())
+                }}
+                className="bg-white/90 hover:bg-white text-mmp-primary shadow-sm h-8 w-8"
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            )}
+            {onDelete && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDelete(product._id.toString())
+                }}
+                className="bg-white/90 hover:bg-white text-red-600 shadow-sm h-8 w-8"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        )}
 
-        {/* Favorite Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleFavorite}
-          className={cn(
-            'absolute top-3 right-3 z-10 w-8 h-8 rounded-full transition-all duration-200',
-            isFavorite
-              ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20'
-              : 'bg-white/80 hover:bg-white text-gray-600 hover:text-red-500 shadow-sm',
-          )}
-          aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-        >
-          <Heart className={cn('h-4 w-4', isFavorite && 'fill-current')} />
-        </Button>
+        {/* Cart button for users */}
+        {!showVendorActions && (
+          <div className="absolute bottom-4 left-0 right-0 px-4 z-10">
+            <AddToCartButton
+              className="w-full bg-white text-mmp-primary2 hover:bg-mmp-neutral hover:text-mmp-primary2 shadow-md"
+              size="default"
+              product={product}
+              aria-label={'Add to cart'}
+            />
+          </div>
+        )}
+
+        {/* Favorite Button for users */}
+        {!showVendorActions && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleFavorite}
+            className={cn(
+              'absolute top-3 right-3 z-10 w-8 h-8 rounded-full transition-all duration-200',
+              isFavorite
+                ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20'
+                : 'bg-white/80 hover:bg-white text-gray-600 hover:text-red-500 shadow-sm',
+            )}
+            aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+          >
+            <Heart className={cn('h-4 w-4', isFavorite && 'fill-current')} />
+          </Button>
+        )}
 
         {/* Product Image */}
         <div
@@ -297,7 +352,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         {/* Add to Cart Button (Mobile/Compact) */}
-        {!config.quickActions && !isOutOfStock && (
+        {!config.quickActions && !isOutOfStock && !showVendorActions && (
           <AddToCartButton
             className="w-full bg-white text-mmp-primary2 hover:bg-mmp-neutral hover:text-mmp-primary2 shadow-md cursor-pointer z-10"
             product={product}
@@ -314,6 +369,8 @@ interface ProductGridProps {
   size?: ProductCardProps['size']
   variant?: ProductCardProps['variant']
   className?: string
+  onEdit?: (productId: string) => void
+  onDelete?: (productId: string) => void
 }
 
 export const ProductGrid: React.FC<ProductGridProps> = ({
@@ -321,6 +378,8 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   size = 'md',
   variant = 'default',
   className,
+  onEdit,
+  onDelete,
 }) => {
   const gridCols = {
     sm: 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
@@ -336,6 +395,8 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
           product={product}
           size={size}
           variant={variant}
+          onEdit={onEdit}
+          onDelete={onDelete}
         />
       ))}
     </div>

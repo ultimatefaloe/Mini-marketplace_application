@@ -2,6 +2,7 @@ import type { IAdmin } from "./admin.types";
 import type { ObjectId } from "./base.types";
 import type { UserRole } from "./enums";
 import type { IUser } from "./user.types";
+import type { IVendor } from "./vendor.type";
 
 /**
  * JWT payload structure
@@ -61,5 +62,5 @@ export interface IPasswordResetPayload {
  */
 export interface ITokenValidationResponse {
   valid: boolean;
-  user: IUser | IAdmin;
+  user: IUser | IVendor | IAdmin;
 }

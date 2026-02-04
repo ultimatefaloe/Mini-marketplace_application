@@ -44,7 +44,6 @@ function LoginPage() {
     try {
       login(data, {
         onSuccess: (response) => {
-          console.log(response)
           if (response.success) {
             setAuth(response.data)
             toast.success(response.message || 'Welcome back!')

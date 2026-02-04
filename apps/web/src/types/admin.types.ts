@@ -1,5 +1,5 @@
-import type { IBaseDocument, ITimestamps } from "./base.types";
-import type { UserRole } from "./enums";
+import type { IBaseDocument, IBaseUser, ITimestamps } from "./base.types";
+import { UserRole } from "./enums";
 
 export interface IAdminPermissions {
   manageProducts: boolean;
@@ -10,11 +10,10 @@ export interface IAdminPermissions {
 /**
  * Admin base interface (excluding sensitive fields)
  */
-export interface IAdmin extends IBaseDocument, ITimestamps {
+export interface IAdmin extends IBaseDocument, ITimestamps, IBaseUser {
   fullName: string;
-  email: string;
   phone: string;
-  role: UserRole;
+  role: UserRole.ADMIN | UserRole.SUPER_ADMIN;
   permissions?: IAdminPermissions;
   isActive: boolean;
   googleId?: string | null;

@@ -50,7 +50,7 @@ function AdminSignupPage() {
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   const { mutate: signup, isPending } = useAdminSignup();
-  const { setAuth } = useAuth();
+  const { setAuthAdmin } = useAuth();
 
   const {
     register,
@@ -75,8 +75,8 @@ function AdminSignupPage() {
       const { confirmPassword, acceptTerms, requestPermissions, ...signupData } = data;
       await signup(signupData, {
         onSuccess: (response) => {
-          if (response.data) {
-            setAuth(response.data);
+          if (response.success) {
+            setAuthAdmin(response.data);
             toast.success('Account created successfully!');
             navigate({ to: '/admin' });
           }

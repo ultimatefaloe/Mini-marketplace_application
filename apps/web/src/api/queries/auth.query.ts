@@ -5,13 +5,14 @@ import type {
   ILoginCredentials,
   ISignupCredentials,
   IUserAuthResponse,
-  IAdminAuthResponse,
   ITokenValidationResponse,
   IPasswordResetRequest,
   IPasswordResetPayload,
   ICreateAdminPayload,
   IUser,
+  IAdmin,
 } from '@/types';
+import type { IVendor, IVendorAuthResponse } from '@/types/vendor.type';
 
 // Queries
 export const useValidateToken = () => {
@@ -67,7 +68,7 @@ export const useVendorSignup = () => {
 
   return useMutation({
     mutationFn: (data: ISignupCredentials) =>
-      apiClient.post<IUser>('/auth/vendor/signup', data),
+      apiClient.post<IVendor>('/auth/vendor/signup', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.validate() });
     },
@@ -79,7 +80,7 @@ export const useVendorLogin = () => {
 
   return useMutation({
     mutationFn: (data: ILoginCredentials) =>
-      apiClient.post<IUser>('/auth/vendor/signin', data),
+      apiClient.post<IVendor>('/auth/vendor/signin', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.validate() });
     },
@@ -91,7 +92,7 @@ export const useVendorGoogleAuth = () => {
 
   return useMutation({
     mutationFn: () =>
-      apiClient.getData<IUserAuthResponse>('/auth/vendor/google'),
+      apiClient.getData<IVendorAuthResponse>('/auth/vendor/google'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.validate() });
     },
@@ -104,7 +105,7 @@ export const useAdminSignup = () => {
 
   return useMutation({
     mutationFn: (data: ICreateAdminPayload) =>
-      apiClient.postData<IAdminAuthResponse>('/auth/admin/signup', data),
+      apiClient.post<IAdmin>('/auth/admin/signup', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.validate() });
     },
@@ -116,7 +117,7 @@ export const useAdminLogin = () => {
 
   return useMutation({
     mutationFn: (data: ILoginCredentials) =>
-      apiClient.postData<IAdminAuthResponse>('/auth/admin/signin', data),
+      apiClient.post<IAdmin>('/auth/admin/signin', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.validate() });
     },

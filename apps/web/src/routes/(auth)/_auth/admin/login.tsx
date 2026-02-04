@@ -32,7 +32,7 @@ function AdminLoginPage() {
   const navigate = useNavigate()
   const [showPassword, setShowPassword] = React.useState(false)
   const { mutate: login, isPending } = useAdminLogin()
-  const { setAuth } = useAuth()
+  const { setAuthAdmin } = useAuth()
 
   const {
     register,
@@ -48,10 +48,10 @@ function AdminLoginPage() {
 
   const onSubmit = async (data: AdminLoginFormData) => {
     try {
-      await login(data, {
+     login(data, {
         onSuccess: (response) => {
-          if (response.data) {
-            setAuth(response.data)
+          if (response.success) {
+            setAuthAdmin(response.data)
             toast.success('Welcome back!, Successfully logged in as admin.')
             navigate({ to: '/admin' })
           }

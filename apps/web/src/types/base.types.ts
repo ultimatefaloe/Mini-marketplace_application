@@ -1,3 +1,5 @@
+import type { UserRole } from "./enums";
+
 export type ObjectId = string;
 
 /**
@@ -31,4 +33,10 @@ export interface IPaginationMeta {
 export interface IPaginatedResponse<T> {
   data: T;
   pagination: IPaginationMeta;
+}
+
+export interface IBaseUser {
+  auth_id: string
+  email: string
+  role: UserRole
 }

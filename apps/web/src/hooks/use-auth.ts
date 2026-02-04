@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { UserRole } from '@/types';
 
 export const useAuth = () => {
-  const { user, isAuthenticated, isLoading, role, setAuth, clearAuth, setLoading } = useAuthStore();
+  const { user, vendor, admin, isAuthenticated, isLoading, role, setAuth, setAuthAdmin, setAuthVendor, clearAuth, setLoading } = useAuthStore();
   const { data: validationData, isLoading: isValidating } = useValidateToken();
   const { mutateAsync: logoutMutate } = useLogout();
   const queryClient = useQueryClient();
@@ -24,22 +24,45 @@ export const useAuth = () => {
   // Sync auth state with token validation
   React.useEffect(() => {
     if (!isValidating && validationData) {
-      if (validationData.valid) {
-        setAuth(validationData.user);
-      } else {
-        clearAuth();
+      if (!validationData.valid) {
+        clearAuth()
+        setLoading(false)
+        return
       }
-      setLoading(false);
+
+      const user = validationData.user
+
+      switch (user.role) {
+        case UserRole.USER:
+          setAuth(user) // ✅ IUser
+          break
+
+        case UserRole.VENDOR:
+          setAuthVendor(user) // ✅ IVendor
+          break
+
+        case UserRole.ADMIN:
+        case UserRole.SUPER_ADMIN:
+          setAuthAdmin(user) // ✅ IAdmin
+          break
+
+        default:
+          clearAuth()
+      }
+
+      setLoading(false)
     }
-  }, [validationData, isValidating, setAuth, clearAuth, setLoading]);
+  }, [validationData, isValidating])
 
   const isAdmin = role === UserRole.ADMIN || role === UserRole.SUPER_ADMIN;
-  const isVendor = role === UserRole.VENDOR 
+  const isVendor = role === UserRole.VENDOR
   const isUser = role === UserRole.USER;
   const isSuperAdmin = role === UserRole.SUPER_ADMIN;
 
   return {
     user,
+    vendor,
+    admin,
     isAuthenticated,
     isLoading: isLoading || isValidating,
     role,
@@ -48,6 +71,8 @@ export const useAuth = () => {
     isUser,
     isSuperAdmin,
     setAuth,
+    setAuthVendor,
+    setAuthAdmin,
     clearAuth,
     logout,
   };
