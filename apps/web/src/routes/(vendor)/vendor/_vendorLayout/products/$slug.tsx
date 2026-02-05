@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { productBySlugQuery, categoriesQuery } from '@/api/queries';
-import { useUpdateProduct } from '@/api/mutations';
+import { useCreateProduct, useUpdateProduct } from '@/api/mutations';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -33,37 +33,20 @@ function VendorProductDetail() {
   const { data: product } = useQuery(productBySlugQuery(slug));
   const { data: categories } = useQuery(categoriesQuery());
   const { mutateAsync: updateProduct, isPending: isUpdating } = useUpdateProduct();
+    const { mutateAsync: createProduct, isPending } = useCreateProduct()
+  
   // const { mutateAsync: deactivateProduct, isPending: isDeactivating } = useDeactivateProduct();
 
   if (!product || !categories) return null;
 
-  const handleSubmit = async (data: any, images: string[]) => {
+  const handleSubmit = async (data: FormData) => {
     try {
-      // Transform form data
-      const updateData = {
-        ...data,
-        tags: data.tags ? data.tags.split(',').map((t: string) => t.trim()) : [],
-        variantOptions: {
-          sizes: data.variantOptions?.sizes ? data.variantOptions.sizes.split(',').map((s: string) => s.trim()) : [],
-          colors: data.variantOptions?.colors ? data.variantOptions.colors.split(',').map((c: string) => c.trim()) : [],
-          materials: data.variantOptions?.materials ? data.variantOptions.materials.split(',').map((m: string) => m.trim()) : [],
-          genders: data.variantOptions?.genders ? data.variantOptions.genders.split(',').map((g: string) => g.trim()) : [],
-        },
-        images,
-      };
-
-      await updateProduct({
-        id: product._id.toString(),
-        data: updateData,
-      });
-
-      toast.success('Product updated successfully');
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      navigate({ to: '/vendor/products' });
+      await createProduct(data)
+      navigate({ to: '/vendor/products' })
     } catch (error: any) {
-      toast.error(error.message || 'Failed to update product');
+      toast.error(error.message)
     }
-  };
+  }
 
   const handleToggleActive = async () => {
     try {
@@ -155,7 +138,7 @@ function VendorProductDetail() {
         product={product}
         categories={categories}
         onSubmit={handleSubmit}
-        isLoading={isUpdating}
+        isLoading={isUpdating || isPending}
       />
     </div>
   );

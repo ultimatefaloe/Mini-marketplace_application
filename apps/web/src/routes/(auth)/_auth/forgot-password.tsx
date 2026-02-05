@@ -59,15 +59,6 @@ function ForgotPasswordPage() {
           Sign in
         </Link>
       </div>
-      <div className="text-sm text-gray-600">
-        Need to reset admin password?{' '}
-        <Link
-          to="/admin/forgot-password"
-          className="font-medium text-mmp-primary hover:text-mmp-primary2 hover:underline"
-        >
-          Admin Password Reset
-        </Link>
-      </div>
     </div>
   );
 

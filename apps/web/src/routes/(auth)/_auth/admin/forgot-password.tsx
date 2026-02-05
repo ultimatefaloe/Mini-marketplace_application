@@ -67,15 +67,6 @@ function AdminForgotPasswordPage() {
           Sign in
         </Link>
       </div>
-      <div className="text-sm text-gray-600 pt-2 border-t border-gray-200">
-        Customer password reset?{' '}
-        <Link
-          to="/forgot-password"
-          className="font-medium text-mmp-secondary hover:text-mmp-accent hover:underline"
-        >
-          Customer Portal
-        </Link>
-      </div>
     </div>
   )
 

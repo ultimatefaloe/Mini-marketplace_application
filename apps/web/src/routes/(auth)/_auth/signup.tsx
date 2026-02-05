@@ -85,7 +85,7 @@ function SignupPage() {
       <div className="text-sm text-gray-600">
         Are you a Business Owner?{' '}
         <Link
-          to="/admin/register"
+          to="/vendor/register"
           className="font-medium text-mmp-primary hover:text-mmp-primary2 hover:underline"
         >
          Business Registration

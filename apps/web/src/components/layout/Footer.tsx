@@ -165,6 +165,32 @@ export default function Footer() {
               ))}
             </div>
 
+            {/* Store services */}
+            <div className="mt-12 pt-8 border-t border-mmp-primary/30">
+              {/* Contact Info */}
+              <div>
+                <h4 className="font-semibold mb-4 text-mmp-secondary">
+                  Store Services
+                </h4>
+              </div>
+              <div className="flex flex-row gap-2">
+                <Button
+                  variant="ghost"
+                  className="px-5 border-mmp-primary/30 hover:bg-mmp-primary/10"
+                  asChild
+                >
+                  <Link to="/vendor/login">Login</Link>
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="px-5"
+                  asChild
+                >
+                  <Link to="/vendor/register">Register</Link>
+                </Button>
+              </div>
+            </div>
+
             {/* Contact & Social Row */}
             <div className="mt-12 pt-8 border-t border-mmp-primary/30">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -177,9 +203,9 @@ export default function Footer() {
                     {contactInfo.map((info, index) => {
                       const Icon = info.icon
                       return (
-                        <a
+                        <Link
                           key={index}
-                          href={info.href}
+                          to={info.href}
                           className="flex items-center gap-3 text-mmp-neutral/70 hover:text-mmp-secondary transition-colors group"
                           target={
                             info.href.startsWith('http') ? '_blank' : undefined
@@ -194,7 +220,7 @@ export default function Footer() {
                             <Icon className="h-4 w-4" />
                           </div>
                           <span className="text-sm">{info.text}</span>
-                        </a>
+                        </Link>
                       )
                     })}
                   </div>
@@ -212,16 +238,16 @@ export default function Footer() {
                         {socialLinks.map((social) => {
                           const Icon = social.icon
                           return (
-                            <a
+                            <Link
                               key={social.label}
-                              href={social.href}
+                              to={social.href}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="p-2 rounded-lg bg-mmp-primary/20 hover:bg-gradient-to-r hover:from-mmp-accent hover:to-mmp-secondary transition-all group"
                               aria-label={social.label}
                             >
                               <Icon className="h-5 w-5 text-mmp-neutral/70 group-hover:text-white transition-colors" />
-                            </a>
+                            </Link>
                           )
                         })}
                       </div>
@@ -321,7 +347,9 @@ export default function Footer() {
             <div className="flex items-center gap-4">
               {/* Payment Methods */}
               <div className="flex items-center gap-2">
-                <span className="text-mmp-neutral/60 pr-2">Payments Platform: </span>
+                <span className="text-mmp-neutral/60 pr-2">
+                  Payments Platform:{' '}
+                </span>
                 <div className="w-8 h-5 bg-mmp-primary/20 rounded flex items-center justify-center">
                   <span className="text-xs font-bold text-mmp-neutral/50">
                     {' '}

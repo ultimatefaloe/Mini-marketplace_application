@@ -48,7 +48,7 @@ function AdminLoginPage() {
 
   const onSubmit = async (data: AdminLoginFormData) => {
     try {
-     login(data, {
+      login(data, {
         onSuccess: (response) => {
           if (response.success) {
             setAuthAdmin(response.data)
@@ -85,15 +85,6 @@ function AdminLoginPage() {
           className="font-medium text-mmp-primary hover:text-mmp-primary2 hover:underline"
         >
           Request Access
-        </Link>
-      </div>
-      <div className="text-sm text-gray-600 pt-2 border-t border-gray-200">
-        Are you a customer?{' '}
-        <Link
-          to="/login"
-          className="font-medium text-mmp-secondary hover:text-mmp-accent hover:underline"
-        >
-          Customer Login
         </Link>
       </div>
     </div>

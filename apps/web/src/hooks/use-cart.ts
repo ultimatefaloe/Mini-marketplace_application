@@ -12,7 +12,7 @@ import {
 import { useCart as useCartQuery } from '@/api/hooks';
 
 export const useCart = () => {
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated } = useAuth();
   const {
     localCart,
     isLoading: storeLoading,
@@ -31,7 +31,6 @@ export const useCart = () => {
   // Fetch server cart if authenticated
   const {
     data: serverCartData,
-    isLoading: serverCartLoading,
     error: serverCartError,
     refetch: refetchServerCart,
   } = useCartQuery();
@@ -325,8 +324,6 @@ export const useCart = () => {
 
   const isLoading: boolean =
     storeLoading ||
-    serverCartLoading ||
-    authLoading ||
     addToCartMutation.isPending ||
     updateCartItemMutation.isPending ||
     removeFromCartMutation.isPending ||

@@ -15,6 +15,7 @@ export interface ILocation {
  * Admin base interface (excluding sensitive fields)
  */
 export interface IVendor extends IBaseDocument, ITimestamps, IBaseUser {
+  fullName: string;
   businessName: string;
   description?: string;
   businessLogo?: string
@@ -37,6 +38,7 @@ export interface IVendorWithPassword extends IVendor {
  * Admin creation payload
  */
 export interface ICreateVendorPayload {
+  fullName: string;
   email: string;
   phone: string;
   businessName: string;

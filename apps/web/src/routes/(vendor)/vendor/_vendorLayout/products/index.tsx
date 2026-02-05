@@ -1,9 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Pagination } from '@/components/ui/pagination'
-import { productsQuery } from '@/api/queries'
+import { vendorProductsQuery } from '@/api/queries'
 import { useDeleteProduct } from '@/api/mutations'
 import {
   Plus,
@@ -53,7 +52,7 @@ export const Route = createFileRoute(
     search: search,
   }),
   loader: async ({ context, deps }) => {
-    return await context.queryClient.ensureQueryData(productsQuery(deps.search))
+    return await context.queryClient.ensureQueryData(vendorProductsQuery(deps.search))
   },
   component: VendorProducts,
   pendingComponent: LoadingState,
@@ -63,7 +62,7 @@ export const Route = createFileRoute(
 function VendorProducts() {
   const navigate = Route.useNavigate()
   const search = Route.useSearch()
-  const { data } = useQuery(productsQuery(search))
+  const data = Route.useLoaderData()
   const { mutateAsync: deleteProduct } = useDeleteProduct()
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)

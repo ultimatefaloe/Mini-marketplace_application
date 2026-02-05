@@ -133,3 +133,34 @@ export const relatedProductsQuery = (slug: string, limit?: number) => ({
     return response.data;
   },
 });
+
+
+//  ======= VENDOR ========
+
+/**
+ * Query options factory for products list
+ * Can be used in TanStack Query or route loaders
+ */
+export const vendorProductsQuery = (filters?: IProductQueryFilters) => ({
+  queryKey: queryKeys.products.all(filters),
+  queryFn: async (): Promise<IPaginatedResponse<FrontendSafe<IProductListItem>[]>> => {
+    const params = new URLSearchParams();
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          params.append(key, String(value));
+        }
+      });
+    }
+
+    const response = await apiClient.get<IPaginatedResponse<FrontendSafe<IProductListItem>[]>>(
+      `/products/vendor?${params.toString()}`
+    );
+
+    if (!response.success) {
+      throw new Error(response.error.message);
+    }
+
+    return response.data;
+  },
+});

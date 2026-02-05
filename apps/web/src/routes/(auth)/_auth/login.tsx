@@ -84,12 +84,12 @@ function LoginPage() {
         </Link>
       </div>
       <div className="text-sm text-gray-600">
-        Are you an admin?{' '}
+        Are you a Store Owner?{' '}
         <Link
-          to="/admin/login"
+          to="/vendor/login"
           className="font-medium text-mmp-primary hover:text-mmp-primary2 hover:underline"
         >
-          Admin Login
+          Store Login
         </Link>
       </div>
     </div>

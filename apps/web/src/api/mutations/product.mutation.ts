@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../client';
 import type {
   IProduct,
-  ICreateProductPayload,
   IUpdateProductPayload,
   FrontendSafe,
 } from '@/types';
@@ -10,7 +9,7 @@ import type {
 /**
  * Mutation function for creating a product
  */
-export const createProductMutation = async (data: ICreateProductPayload): Promise<FrontendSafe<IProduct>> => {
+export const createProductMutation = async (data: FormData): Promise<FrontendSafe<IProduct>> => {
   const response = await apiClient.post<FrontendSafe<IProduct>>('/products', data);
 
   if (!response.success) {
@@ -97,7 +96,7 @@ export const useCreateProduct = () => {
   return useMutation({
     mutationFn: createProductMutation,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products', 'list'] });
+      queryClient.invalidateQueries({ queryKey: ['products', 'all'] });
     },
   });
 };
@@ -111,7 +110,7 @@ export const useUpdateProduct = () => {
   return useMutation({
     mutationFn: updateProductMutation,
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['products', 'list'] });
+      queryClient.invalidateQueries({ queryKey: ['products', 'all'] });
       queryClient.invalidateQueries({ queryKey: ['products', 'detail', variables.id] });
     },
   });
@@ -126,7 +125,7 @@ export const useDeleteProduct = () => {
   return useMutation({
     mutationFn: deleteProductMutation,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products', 'list'] });
+      queryClient.invalidateQueries({ queryKey: ['products', 'all'] });
     },
   });
 };
@@ -140,7 +139,7 @@ export const useDeactivateProduct = () => {
   return useMutation({
     mutationFn: deactivateProductMutation,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products', 'list'] });
+      queryClient.invalidateQueries({ queryKey: ['products', 'all'] });
     },
   });
 };

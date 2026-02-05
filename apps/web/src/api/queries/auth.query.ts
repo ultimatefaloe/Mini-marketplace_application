@@ -20,7 +20,7 @@ export const useValidateToken = () => {
     queryKey: queryKeys.auth.validate(),
     queryFn: () => apiClient.getData<ITokenValidationResponse>('/auth/validate'),
     retry: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 2 * 60 * 1000, // 1 minutes
   });
 };
 
